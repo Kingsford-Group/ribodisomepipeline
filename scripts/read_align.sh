@@ -26,7 +26,7 @@ ribo_core=${ribo_core%%.*}
 common_params="--runThreadN ${nproc} --seedSearchLmax 10 --outFilterMultimapScoreRange 0 --outFilterMultimapNmax 255 --outFilterMismatchNmax 1 --clip3pAdapterSeq ${adapter} --outFilterScoreMinOverLread 0 --outFilterMatchNminOverLread 0 --outFilterIntronMotifs RemoveNoncanonical"
 oriboprefix=${align_dir}${ribo_core}_rrna_
 ribo_nrrna_fa=${oriboprefix}Unmapped.out.mate1
-STAR --genomeDir ${contaminant_idx} --readFilesIn ${riboseq_fq} --outFileNamePrefix ${oriboprefix} --outStd SAM --outReadsUnmapped Fastx --outSAMmode NoQS "--readFilesCommand zcat <" ${common_params} > /dev/null
+STAR --genomeDir ${contaminant_idx} --readFilesIn ${riboseq_fq} --outFileNamePrefix ${oriboprefix} --outSAMtype BAM Unsorted --outReadsUnmapped Fastx --outSAMmode NoQS "--readFilesCommand zcat <" ${common_params} > /dev/null #  --outStd SAM
 #============================================
 # step 2: map to transcriptome
 #============================================
