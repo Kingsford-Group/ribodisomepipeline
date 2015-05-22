@@ -26,10 +26,11 @@ ribo_core=${ribo_core%%.*}
 common_params="--runThreadN ${nproc} --seedSearchLmax 10 --outFilterMultimapScoreRange 0 --outFilterMultimapNmax 255 --outFilterMismatchNmax 1 --clip3pAdapterSeq ${adapter} --outFilterScoreMinOverLread 0 --outFilterMatchNminOverLread 0 --outFilterIntronMotifs RemoveNoncanonical"
 oriboprefix=${align_dir}${ribo_core}_rrna_
 ribo_nrrna_fa=${oriboprefix}Unmapped.out.mate1
-STAR --genomeDir ${contaminant_idx} --readFilesIn ${riboseq_fq} --outFileNamePrefix ${oriboprefix} --outSAMtype BAM Unsorted --outReadsUnmapped Fastx --outSAMmode NoQS "--readFilesCommand zcat <" ${common_params} > /dev/null #  --outStd SAM
+STAR --genomeDir ${contaminant_idx} --readFilesIn ${riboseq_fq} --outFileNamePrefix ${oriboprefix} --outSAMtype BAM Unsorted --outReadsUnmapped Fastx --outSAMmode NoQS "--readFilesCommand zcat <" ${common_params}  --outFilterMatchNmin 20 > /dev/null #  --outStd SAM
 #============================================
 # step 2: map to transcriptome
 #============================================
 echo "aligning riboseq to the transcriptome"
 oriboprefix=${align_dir}${ribo_core}_transcript_
-STAR --genomeDir ${transcript_idx} --readFilesIn ${ribo_nrrna_fa} --outFileNamePrefix ${oriboprefix} --outSAMtype BAM Unsorted --outSAMmode NoQS --outSAMattributes NH NM ${common_params}
+STAR --genomeDir ${transcript_idx} --readFilesIn ${ribo_nrrna_fa} --outFileNamePrefix ${oriboprefix} --outSAMtype BAM Unsorted --outSAMmode NoQS --outSAMattributes NH NM ${common_params}  --outFilterMatchNmin 13
+#STAR --genomeDir ${transcript_idx} --readFilesIn ${riboseq_fq} --outFileNamePrefix ${oriboprefix} --outSAMtype BAM Unsorted --outSAMmode NoQS --outSAMattributes NH NM "--readFilesCommand zcat <" ${common_params}
