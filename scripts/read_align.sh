@@ -13,8 +13,8 @@ bin_dir=${cur_dir}/../bin
 export PATH=${bin_dir}:$PATH
 align_dir=${cur_dir}/../data/alignments/
 mkdir -p ${align_dir}
-contaminant_idx=/home/hw1/scratch/scratch2/ribomap-playground/yeast/StarIndex/contaminant/
-transcript_idx=/home/hw1/scratch/scratch2/ribomap-playground/yeast/StarIndex/transcript/
+contaminant_idx=${cur_dir}/../Star/contaminant/
+transcript_idx=${cur_dir}/../Star/transcript/
 adapter=CTGTAGGCACCATCAAT
 nproc=30
 #============================================
