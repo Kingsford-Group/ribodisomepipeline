@@ -1,5 +1,6 @@
 disome pipeline
 ------
+
 1) download data `./get_disome_data.sh`
 2) download STAR `./download_star.sh`
 3) download referecences `./build_refs.sh`
