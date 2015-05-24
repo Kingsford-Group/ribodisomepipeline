@@ -6,8 +6,7 @@ mkdir -p ${odir}
 for f in ${idir}*.fastq.gz; do
     fcore=`basename $f`
     fcore=${fcore%%.*}
-    cutadapt -a CTGTAGGCACCATCAAT -m 0 --discard-untrimmed -o ${odir}${fcore}.fastq.gz $f > ${odir}${fcore}.report
-    zcat $f | \
-    cutadapt -g CTGTAGGCACCATCAAT -m 0 --discard-untrimmed - 2> ${odir}${fcore}_barcode_5p.report | \
-    cutadapt -a AGATCGGAAGAG -m 0 --discard-untrimmed -o ${odir}${fcore}_barcode.fastq - > ${odir}${fcore}_barcode_3p.report
+    cutadapt -a CTGTAGGCACCATCAAT -o ${odir}${fcore}.fastq.gz $f > ${odir}${fcore}.report
+    cutadapt -g CTGTAGGCACCATCAAT $f 2> ${odir}${fcore}_barcode_5p.report | \
+    cutadapt -a AGATCGGAAGAG -o ${odir}${fcore}_barcode.fastq.gz - > ${odir}${fcore}_barcode_3p.report
 done
