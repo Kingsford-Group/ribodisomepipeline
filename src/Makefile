@@ -9,3 +9,7 @@ OUTPUT_OPTION = -o $@
 read_len_hist: read_len_hist.o
 	$(COMPILE.c) $(OUTPUT_OPTION) $^ $(LDFLAGS)
 	chmod u+x $@
+
+collapse_barcode: collapse_barcode.o
+	$(COMPILE.c) $(OUTPUT_OPTION) $^ $(LDFLAGS)
+	chmod u+x $@
