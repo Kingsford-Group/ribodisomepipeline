@@ -1,9 +1,10 @@
 disome pipeline
 ------
 
-1. download data `./get_disome_data.sh`
-2. clip off Illumina-specific library sequence before alignment `./clip_illumina_seq.sh`
-3. download STAR `./download_star.sh`
-4. download referecences `./build_refs.sh`
-5. build STAR indices `./build_star_index.sh`
-6. align reads `./batch_align.sh`
+1. download data `scripts/get_disome_data.sh`
+2. separate barcode and ribo-seq portion from reads `scripts/barcode_seperation.sh`
+3. collapse barcode `src/collapse_barcode read_in.fq.gz barcode.fq.gz read_out.fq.gz`
+4. download STAR `scripts/download_star.sh`
+5. download referecences `scripts/build_refs.sh`
+6. build STAR indices `scripts/build_star_index.sh`
+7. align reads `scripts/batch_align.sh`
