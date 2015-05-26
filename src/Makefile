@@ -13,3 +13,7 @@ read_len_hist: read_len_hist.o
 collapse_barcode: collapse_barcode.o
 	$(COMPILE.c) $(OUTPUT_OPTION) $^ $(LDFLAGS)
 	chmod u+x $@
+
+filter_zero_seq: filter_zero_seq.o
+	$(COMPILE.c) $(OUTPUT_OPTION) $^ $(LDFLAGS)
+	chmod u+x $@

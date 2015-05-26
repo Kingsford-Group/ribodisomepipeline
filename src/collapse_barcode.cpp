@@ -8,7 +8,6 @@
 #include <seqan/sequence.h>
 #include <seqan/seq_io.h>
 
-//using namespace std;
 int main(int argc, char** argv)
 {
   if (argc != 4) {
@@ -21,6 +20,7 @@ int main(int argc, char** argv)
   seqan::SequenceStream read_stream(read_in), barcode_stream(barcode);
   seqan::SequenceStream out_stream(read_out, seqan::SequenceStream::WRITE);
   // check whether files are opened properly
+  std::cout<<read_in<<std::endl;
   if (!isGood(read_stream)) {
     std::cerr << "ERROR: Could not open "<<read_in<<".\n";
     return 1;
