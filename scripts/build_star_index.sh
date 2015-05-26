@@ -6,8 +6,8 @@ export PATH=${bin_dir}:$PATH
 ref_dir=${cur_dir}/../ref
 contaminant_fa=${ref_dir}/yeast_contaminant.fa
 transcript_fa=${ref_dir}/protein_coding_100_filtered.fasta
-rrna_idx=${cur_dir}/../Star/contaminant/
-transcript_idx=${cur_dir}/../Star/transcript/
+rrna_idx=${cur_dir}/../StarIndex/contaminant/
+transcript_idx=${cur_dir}/../StarIndex/transcript/
 mkdir -p ${rrna_idx}
 mkdir -p ${transcript_idx}
 STAR --runThreadN $nproc --runMode genomeGenerate --genomeDir ${rrna_idx} --genomeFastaFiles ${contaminant_fa} --genomeSAindexNbases 5 --genomeChrBinNbits 11

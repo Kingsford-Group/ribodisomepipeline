@@ -11,18 +11,19 @@ fi
 cur_dir=`dirname $0`
 bin_dir=${cur_dir}/../bin
 export PATH=${bin_dir}:$PATH
-align_dir=${cur_dir}/../data/alignments/
+align_dir=${cur_dir}/../alignment/
 mkdir -p ${align_dir}
-contaminant_idx=${cur_dir}/../Star/contaminant/
-transcript_idx=${cur_dir}/../Star/transcript/
-nproc=30
+contaminant_idx=${cur_dir}/../StarIndex/contaminant/
+transcript_idx=${cur_dir}/../StarIndex/transcript/
+nproc=24
+adapter=N
 #============================================
 # step 1: filter rrna
 #============================================
 echo "filtering contaminated sequences in riboseq"
 ribo_core=`basename ${riboseq_fq}`
 ribo_core=${ribo_core%%.*}
-common_params="--runThreadN ${nproc} --seedSearchLmax 10 --outFilterMultimapScoreRange 0 --outFilterMultimapNmax 255 --outFilterMismatchNmax 1 --outFilterMatchNmin 19 --outFilterIntronMotifs RemoveNoncanonical"
+common_params="--runThreadN ${nproc} --clip3pAdapterSeq ${adapter} --seedSearchLmax 10 --outFilterMultimapScoreRange 0 --outFilterMultimapNmax 255 --outFilterMismatchNmax 1 --outFilterIntronMotifs RemoveNoncanonical"
 oriboprefix=${align_dir}${ribo_core}_rrna_
 ribo_nrrna_fa=${oriboprefix}Unmapped.out.mate1
 STAR --genomeDir ${contaminant_idx} --readFilesIn ${riboseq_fq} --outFileNamePrefix ${oriboprefix} --outStd SAM --outReadsUnmapped Fastx --outSAMmode NoQS "--readFilesCommand zcat <" ${common_params} > /dev/null 
