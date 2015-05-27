@@ -34,12 +34,6 @@ int get_map_cnt_from_bam_rec(seqan::BamAlignmentRecord& bam_rec)
   return val;
 }
 
-// invalid alignment if softclipped length at 5' end > cutoff
-bool invalid_alignment(const seqan::BamAlignmentRecord& bam_rec, int cutoff)
-{
-  return (bam_rec.cigar[0].operation == 'S' and bam_rec.cigar[0].count > cutoff);
-}
-
 int get_read_len_from_bam_rec(const seqan::BamAlignmentRecord& bam_rec)
 {
   int read_len(0);
@@ -137,61 +131,6 @@ int read_len_hist(const char* fn, bool pbegin, rid2tid_t& rid2tid, rid2rlhist_t&
   }//while(!atEnd(bamIn))
 }
 
-int bam_stats(const char* fn, int cutoff)
-{
-  // open bam file
-  seqan::BamStream bamIn(fn);
-  if (!isGood(bamIn)){
-    cerr << "ERROR: Could not open "<<fn<<"!"<<endl;
-    exit(1);
-  }
-  // get read length and start location info
-  seqan::BamAlignmentRecord bam_rec;
-  unordered_map<string, int> map_cnt;
-  int i=0;
-  while(!atEnd(bamIn)){
-    if(readRecord(bam_rec,bamIn)!=0){
-      cerr << "ERROR: Could not read bam record!\n";
-      return true;
-    }
-    // get mapped reads
-    if (!hasFlagUnmapped(bam_rec)){
-      string name(toCString(bam_rec.qName));
-      // initialize multimap counter
-      if (not hasFlagSecondary(bam_rec)) {
-	// map count in Tag NH
-	int cnt(get_map_cnt_from_bam_rec(bam_rec));
-	map_cnt.emplace(name, cnt);
-      }
-      // read length is the length on the transcript covered by the read
-      int read_len(get_read_len_from_bam_rec(bam_rec));
-      // put count in histogram
-      if (read_len == 0) continue;
-      // reduce multi-map counter if not included
-      if (hasFlagRC(bam_rec) or // reverse complement alignment
-	  invalid_alignment(bam_rec, cutoff) or // softclipped length at 5' end > cutoff
-	  read_len == 0 // spliced alignment
-	  ) {
-	map_cnt[name]--;
-	continue;
-      }
-    }//if(!hasFlagUnmapped(bam_rec))
-    if (++i%10000 == 0) {
-      cout<<"processed "<<i<<" reads.\r";
-      cout.flush();
-    }
-  }//while(!atEnd(bamIn))
-  double tot_cnt(map_cnt.size()), multi_map(0), invalid(0);
-  for (auto x: map_cnt) {
-    if (x.second < 1)
-      invalid += 1;
-    else if (x.second > 1)
-      multi_map += 1;
-  }
-  double single_map = tot_cnt - multi_map - invalid;
-  printf("total: %.0f single_map: %.0f (%.2f %%) multi_map: %.0f (%.2f %%) invalid: %.0f (%.2f %%)\n",tot_cnt, single_map, single_map*100/tot_cnt, multi_map, multi_map*100/tot_cnt, invalid, invalid*100/tot_cnt);  
-}
-
 void write_rlen_hist(const char* fn, const rid2tid_t& rid2tid, const rid2rlhist_t& rid2hist)
 {
   int i = 0;
@@ -223,13 +162,12 @@ int main(int argc, char ** argv)
   }
   char* bam_in = argv[1];
   char* ofname = argv[2];
-  bam_stats(bam_in, 3);
-  // rid2tid_t rid2tid;
-  // rid2rlhist_t rid2hist;
-  // cout<<"5'end "<<endl;
-  // cout<<"parsing bam file..."<<endl;
-  // read_len_hist(bam_in, true, rid2tid, rid2hist);
-  // cout<<"writing histogram..."<<endl;
-  // write_rlen_hist(ofname, rid2tid, rid2hist);
+  rid2tid_t rid2tid;
+  rid2rlhist_t rid2hist;
+  cout<<"5'end "<<endl;
+  cout<<"parsing bam file..."<<endl;
+  read_len_hist(bam_in, true, rid2tid, rid2hist);
+  cout<<"writing histogram..."<<endl;
+  write_rlen_hist(ofname, rid2tid, rid2hist);
   return 0;
 }
