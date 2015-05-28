@@ -209,7 +209,7 @@ def main():
     codon2aa = build_codon_to_aa(stop_codon)
     cds_range = get_cds_boundries(cds_fa, transcript_fa)
     glist = get_gene_list(transcript_fa)
-    glist = exclude_overlapping_genes(overlapping_gene_fn,glist)
+    # glist = exclude_overlapping_genes(overlapping_gene_fn,glist)
     glist = transcript_codon_check(cds_fa, peptide_fa, glist, None)
     print "transcripts included in study: {0}".format(sum(glist.values()))
     cds_range = build_filtered_cds_with_boundry(cds_fa, transcript_fa, glist, cds_range, filtered_tfa, boundry)
