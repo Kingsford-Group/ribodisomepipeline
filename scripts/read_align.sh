@@ -1,8 +1,9 @@
 #!/bin/bash
 # pre-compiled STAR indices should be provided otherwise STAR won't run
 riboseq_fq=$1
-if [ -z "${riboseq_fq}" ]; then
-    echo "Usage: ./read_align.sh ribo-seq.fq.gz"
+align_dir=$2
+if [ -z "${riboseq_fq}" ] || [ -z "${align_dir}" ]; then
+    echo "Usage: ./read_align.sh ribo-seq.fq.gz output_dir"
     exit
 fi
 #=============================
@@ -11,7 +12,6 @@ fi
 cur_dir=`dirname $0`
 bin_dir=${cur_dir}/../bin
 export PATH=${bin_dir}:$PATH
-align_dir=${cur_dir}/../alignment/
 mkdir -p ${align_dir}
 contaminant_idx=${cur_dir}/../StarIndex/contaminant/
 transcript_idx=${cur_dir}/../StarIndex/transcript/
