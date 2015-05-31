@@ -70,7 +70,16 @@ def single_peak_set_analysis(peak, start, stop, tseq, title, fn_prefix):
     plot_aa_freq(aa_peak, title, fn_prefix+"_peak")
     plot_aa_freq(aa_freq, title, fn_prefix+"_freq")
 
-        
+def compare_two_peak_sets(peak1, peak2, start, stop, tseq, title, fn_prefix):
+    single_peak_set_analysis(peak1, start, stop, tseq, title, fn_prefix+"1")
+    single_peak_set_analysis(peak2, start, stop, tseq, title, fn_prefix+"2")
+    p1_uniq = unique_peaks(peak1,peak2)
+    p2_uniq = unique_peaks(peak2, peak1)
+    p_share = shared_peaks(peak1, peak2)
+    single_peak_set_analysis(p1_uniq, start, stop, tseq, title, fn_prefix+"1uniq")    
+    single_peak_set_analysis(p2_uniq, start, stop, tseq, title, fn_prefix+"2uniq")    
+    single_peak_set_analysis(p_share, start, stop, tseq, title, fn_prefix+"_share")
+
 def get_codon_usage(tid_list, start, stop, tseq):
     print "getting codon usage..."
     codon_cnt = {}
@@ -153,10 +162,9 @@ if __name__ == "__main__":
     tseq = get_tseq(tfasta, cds_range)
     # no Chx collapse barcode
     p_ncnb = get_peaks_from_histfile(p_nc_nb_fn, cds_range, start, stop)
-    single_peak_set_analysis(p_ncnb, start, stop, tseq, 'no Chx no barcode collapse', 'test')
-    # # no Chx no collapse barcode
-    # p_ncwb = get_peaks_from_histfile(p_nc_wb_fn, cds_range, start, stop)
-    
+    # no Chx no collapse barcode
+    p_ncwb = get_peaks_from_histfile(p_nc_wb_fn, cds_range, start, stop)
+    compare_two_peak_sets(p_ncnb, p_ncwb, start, stop, tseq, 'no Chx', 'noChxNYbarcode')    
 
 
     # # Chx collapse barcode
