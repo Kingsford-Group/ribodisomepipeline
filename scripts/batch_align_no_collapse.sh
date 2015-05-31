@@ -1,8 +1,10 @@
 #!/bin/bash
 cur_dir=`dirname $0`
-data_dir=${cur_dir}/../data/fasta/
+data_dir=${cur_dir}/../data/fasta/prelim/
 src_dir=${cur_dir}/../src/
-# filter out empty reads
+align_dir=${cur_dir}/../alignment/prelim/
+mkdir -p ${align_dir}
+filter out empty reads
 for f in ${data_dir}*_prefilter.fastq.gz; do
     fcore=`basename $f`
     fcore=${fcore%%_prefilter*}
@@ -10,5 +12,5 @@ for f in ${data_dir}*_prefilter.fastq.gz; do
 done
 # align reads with STAR
 for f in ${data_dir}*_nonempty.fastq.gz; do
-    ./read_align.sh $f
+    ./read_align.sh $f ${align_dir}
 done

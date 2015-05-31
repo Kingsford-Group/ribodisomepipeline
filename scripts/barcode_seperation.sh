@@ -1,7 +1,7 @@
 #!/bin/bash
 cur_dir=`dirname $0`
 idir=${cur_dir}/../data/raw/
-odir=${cur_dir}/../data/fasta/
+odir=${cur_dir}/../data/fasta/prelim/
 mkdir -p ${odir}
 for f in ${idir}*.fastq.gz; do
     fcore=`basename $f`
