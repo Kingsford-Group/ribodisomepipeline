@@ -59,12 +59,16 @@ def shared_peaks(p1,p2):
 def single_peak_set_analysis(peak, start, stop, tseq, title, fn_prefix):
     codon_usage = get_codon_usage(peak.keys(), start, stop, tseq)
     codon_peak = get_codon_peak_cnt(peak, tseq)
+    codon_freq = get_frequency(codon_peak, codon_usage)
     plot_codon_freq(codon_usage, title, fn_prefix+"_usage")
     plot_codon_freq(codon_peak, title, fn_prefix+"_peak")
+    plot_codon_freq(codon_freq, title, fn_prefix+"_freq")
     aa_usage = codon_cnt_to_aa_cnt(codon_usage)
     aa_peak = codon_cnt_to_aa_cnt(codon_peak)
+    aa_freq = get_frequency(aa_peak, aa_usage)
     plot_aa_freq(aa_usage, title, fn_prefix+"_usage")
     plot_aa_freq(aa_peak, title, fn_prefix+"_peak")
+    plot_aa_freq(aa_freq, title, fn_prefix+"_freq")
 
         
 def get_codon_usage(tid_list, start, stop, tseq):
@@ -73,7 +77,7 @@ def get_codon_usage(tid_list, start, stop, tseq):
     for tid in tid_list:
         plen = len(tseq[tid])/3
         for i in xrange(start, plen-stop):
-            codon = tseq[tid][i:i+3]
+            codon = tseq[tid][i*3:(i+1)*3]
             codon_cnt.setdefault(codon,0)
             codon_cnt[codon]+=1
     return codon_cnt
@@ -84,16 +88,17 @@ def get_codon_peak_cnt(peak, tseq):
     for tid, p in peak.iteritems():
         for i in xrange(len(p)):
             if p[i] == True:
-                codon = tseq[tid][i:i+3]
+                codon = tseq[tid][i*3:(i+1)*3]
                 codon_cnt.setdefault(codon,0)
                 codon_cnt[codon] += 1
     return codon_cnt
 
-def get_codon_frequency(codon_peak, codon_usage):
-    return { codon: cnt/float(codon_usage[codon]) for codon, cnt in codon_peak.iteritems()}
+def get_frequency(peak, usage):
+    return { k: cnt/float(usage[k]) for k, cnt in peak.iteritems()}
 
 def plot_codon_freq(codon_cnt, title, fn_prefix):
     codon_list = generate_codon_list()
+    codon_list = [ c for c in codon_list if c in codon_cnt ]
     plot_cnt = len(codon_list)
     c = [ cmap(i) for i in np.linspace(0,1,plot_cnt) ]
     cnt_list = [ codon_cnt[codon] for codon in codon_list]
@@ -117,6 +122,7 @@ def codon_cnt_to_aa_cnt(codon_cnt):
 
 def plot_aa_freq(aa_cnt, title, fn_prefix):
     aa_list = generate_aa_list()
+    aa_list = [ a for a in aa_list if a in aa_cnt ]
     plot_cnt = len(aa_list)
     c = [ cmap(i) for i in np.linspace(0,1,plot_cnt) ]
     cnt_list = [ aa_cnt[aa] for aa in aa_list]
