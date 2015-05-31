@@ -56,6 +56,9 @@ def shared_peaks(p1,p2):
     """ shared peaks between p1 and p2"""
     return { tid: p1[tid] & p2[tid] for tid in set(p1.keys())&set(p2.keys()) }
 
+def peak_sum(peak):
+    return sum([sum(peak_vec) for _,peak_vec in peak.iteritems() ])
+
 def single_peak_set_analysis(peak, start, stop, tseq, title, fn_prefix):
     codon_usage = get_codon_usage(peak.keys(), start, stop, tseq)
     codon_peak = get_codon_peak_cnt(peak, tseq)
@@ -76,9 +79,16 @@ def compare_two_peak_sets(peak1, peak2, start, stop, tseq, title, fn_prefix):
     p1_uniq = unique_peaks(peak1,peak2)
     p2_uniq = unique_peaks(peak2, peak1)
     p_share = shared_peaks(peak1, peak2)
+    p1cnt = peak_sum(peak1)
+    p2cnt = peak_sum(peak2)
+    p1ucnt = peak_sum(p1_uniq)
+    p2ucnt = peak_sum(p2_uniq)
+    pscnt = peak_sum(p_share)
     single_peak_set_analysis(p1_uniq, start, stop, tseq, title, fn_prefix+"1uniq")    
     single_peak_set_analysis(p2_uniq, start, stop, tseq, title, fn_prefix+"2uniq")    
     single_peak_set_analysis(p_share, start, stop, tseq, title, fn_prefix+"_share")
+    print "p1: unique:{0} ({1:.2%}) shared: {2} ({3:.2%}) total: {4}".format(p1ucnt, p1ucnt/float(p1cnt), pscnt, pscnt/float(p1cnt), p1cnt)
+    print "p2: unique:{0} ({1:.2%}) shared: {2} ({3:.2%}) total: {4}".format(p2ucnt, p2ucnt/float(p2cnt), pscnt, pscnt/float(p2cnt), p2cnt)
 
 def get_codon_usage(tid_list, start, stop, tseq):
     print "getting codon usage..."
@@ -107,10 +117,9 @@ def get_frequency(peak, usage):
 
 def plot_codon_freq(codon_cnt, title, fn_prefix):
     codon_list = generate_codon_list()
-    codon_list = [ c for c in codon_list if c in codon_cnt ]
     plot_cnt = len(codon_list)
     c = [ cmap(i) for i in np.linspace(0,1,plot_cnt) ]
-    cnt_list = [ codon_cnt[codon] for codon in codon_list]
+    cnt_list = [ codon_cnt[codon] if codon in codon_cnt else 0 for codon in codon_list ]
     x = range(plot_cnt)
     plt.figure(figsize=(12,6))
     plt.bar(x, cnt_list, color=c, edgecolor='white',align='center')
@@ -131,10 +140,9 @@ def codon_cnt_to_aa_cnt(codon_cnt):
 
 def plot_aa_freq(aa_cnt, title, fn_prefix):
     aa_list = generate_aa_list()
-    aa_list = [ a for a in aa_list if a in aa_cnt ]
     plot_cnt = len(aa_list)
     c = [ cmap(i) for i in np.linspace(0,1,plot_cnt) ]
-    cnt_list = [ aa_cnt[aa] for aa in aa_list]
+    cnt_list = [ aa_cnt[aa] if aa in aa_cnt else 0 for aa in aa_list ]
     aa_name = [ aa2fullname[aa] for aa in aa_list]
     x = range(plot_cnt)
     plt.figure(figsize=(12,6))
@@ -164,14 +172,16 @@ if __name__ == "__main__":
     p_ncnb = get_peaks_from_histfile(p_nc_nb_fn, cds_range, start, stop)
     # no Chx no collapse barcode
     p_ncwb = get_peaks_from_histfile(p_nc_wb_fn, cds_range, start, stop)
-    compare_two_peak_sets(p_ncnb, p_ncwb, start, stop, tseq, 'no Chx', 'noChxNYbarcode')    
-
-
-    # # Chx collapse barcode
-    # p_wcnb = get_peaks_from_histfile(p_wc_nb_fn, cds_range, start, stop)
-    # # Chx no collapse barcode
-    # p_wcwb = get_peaks_from_histfile(p_wc_wb_fn, cds_range, start, stop)
-
+    # Chx collapse barcode
+    p_wcnb = get_peaks_from_histfile(p_wc_nb_fn, cds_range, start, stop)
+    # Chx no collapse barcode
+    p_wcwb = get_peaks_from_histfile(p_wc_wb_fn, cds_range, start, stop)
+    print "no chx barcode comparison 1: collapsed barcode 2:no collapse"
+    compare_two_peak_sets(p_ncnb, p_ncwb, start, stop, tseq, 'no Chx', odir+'noChxYNbarcode')    
+    print "10 chx barcode comarison 1: collapsed barcode 2: no collpase"
+    compare_two_peak_sets(p_wcnb, p_wcwb, start, stop, tseq, '10x Chx', odir+'Chx10YNbarcode')        
+    print "chx comarison (barcode collapsed) 1: no chx 2: 10 chx"
+    compare_two_peak_sets(p_ncnb, p_wcnb, start, stop, tseq, 'barcode collapsed', odir+'BarcodeYNChx')        
     
     
 
