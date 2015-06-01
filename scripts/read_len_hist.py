@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import scipy.optimize
 import numpy as np
 import os
 import sys
