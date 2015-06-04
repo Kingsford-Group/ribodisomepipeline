@@ -3,7 +3,7 @@ import numpy as np
 import scipy.stats
 import exGaussian
 from peak_cluster import threshold, identify_peaks, cluster_peaks
-
+from codon_table import *
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
@@ -11,7 +11,6 @@ from matplotlib import rcParams
 rcParams['font.size'] = 20
 rcParams['xtick.major.size'] = 5
 rcParams['ytick.major.size'] = 5
-cmap = matplotlib.cm.gist_rainbow
 
 #=============================
 # filter profiles
@@ -369,8 +368,10 @@ def plot_codon_hist_fitting(rc_list, params, pdf_func, rc_jam_list=None, xmin=1e
     print "plot histograms"
     fig = plt.figure(facecolor='white', figsize=(16, 16))
     i = 0
-    clist = sorted(rc_list.keys())
-    for codon in clist:
+    clist = generate_cc_list()
+    for i in xrange(len(clist)):
+        codon = clist[i]
+        if codon not in rc_list: continue
         nrc_list = np.array(rc_list[codon])
         i += 1
         ax = fig.add_subplot(8, 8, i)
@@ -379,14 +380,14 @@ def plot_codon_hist_fitting(rc_list, params, pdf_func, rc_jam_list=None, xmin=1e
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().tick_left()
         ax.get_yaxis().set_visible(False)
-        ns,bins,patches = plt.hist(nrc_list, np.linspace(xmin,xmax,50), normed = True, histtype='stepfilled', log=False, color = 'c', edgecolor='c', alpha=0.5)
+        ns,bins,patches = plt.hist(nrc_list, np.linspace(xmin,xmax,50), normed = True, histtype='stepfilled', log=False, color = 'c', edgecolor='c', alpha=0.4)
         ymax = max(ns)
         if rc_jam_list!=None and codon in rc_jam_list and len(rc_jam_list[codon])>10:
             ns,bins,patches = plt.hist(rc_jam_list[codon], np.linspace(xmin,xmax,50), normed = True, histtype='stepfilled', log=False, color='b', edgecolor='b', hatch='/', alpha=0.3)
             ymax = max(ns+[ymax])
         x = np.linspace(xmin, xmax, 10000)
         y = pdf_func(x, params[codon])
-        plt.plot(x,y,'r-',lw=2, alpha=0.3)
+        plt.plot(x,y,'r-',lw=2, alpha=0.5)
         ax.set_title(codon,fontsize=10)
         ax.set_xlim((0,xmax))
         ax.set_ylim((0,ymax+0.1))
