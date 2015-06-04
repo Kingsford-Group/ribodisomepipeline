@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import numpy as np
+import matplotlib
 codon2aa = {
 'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'TCT': 'S',
 'TCC': 'S', 'TCA': 'S', 'TCG': 'S', 'TAT': 'Y', 'TAC': 'Y',
@@ -13,6 +15,31 @@ codon2aa = {
 'GCC': 'A', 'GCA': 'A', 'GCG': 'A', 'GAT': 'D', 'GAC': 'D',
 'GAA': 'E', 'GAG': 'E', 'GGT': 'G', 'GGC': 'G', 'GGA': 'G',
 'GGG': 'G', 'TAG': '*', 'TAA': '*', 'TGA':'*'}
+
+aa2codon = {
+    'F': ['TTT', 'TTC'], 
+    'L': ['TTA', 'TTG', 'CTT', 'CTC', 'CTA', 'CTG'], 
+    'S': ['TCT', 'TCC', 'TCA', 'TCG', 'AGT', 'AGC'], 
+    'Y': ['TAT', 'TAC'],
+    'C': ['TGT', 'TGC'], 
+    'W': ['TGG'], 
+    'P': ['CCT', 'CCC', 'CCA', 'CCG'], 
+    'H': ['CAT', 'CAC'], 
+    'Q': ['CAA', 'CAG'], 
+    'R': ['CGT', 'CGC', 'CGA', 'CGG', 'AGA', 'AGG'], 
+    'I': ['ATT', 'ATC', 'ATA'], 
+    'M': ['ATG'], 
+    'T': ['ACT', 'ACC', 'ACA', 'ACG'], 
+    'N': ['AAT', 'AAC'], 
+    'K': ['AAA', 'AAG'], 
+    'V': ['GTT', 'GTC', 'GTA', 'GTG'], 
+    'A': ['GCT', 'GCC', 'GCA', 'GCG'], 
+    'D': ['GAT', 'GAC'], 
+    'E': ['GAA', 'GAG'], 
+    'G': ['GGT', 'GGC', 'GGA', 'GGG'], 
+    '*': ['TAA', 'TAG', 'TGA']
+}
+
 aa2fullname = {
 'F' : 'Phenylalanine',
 'L' : 'Leucine',
@@ -36,7 +63,24 @@ aa2fullname = {
 'G' : 'Glycine',
 '*': 'Stop Codon'}
 
-def generate_codon_list():
+def generate_aa_list():
+    return ['F', 'L', 'S', 'Y', 'C',
+            'W', 'P', 'H', 'Q', 'R',
+            'I', 'M', 'T', 'N', 'K',
+            'V', 'A', 'D', 'E', 'G',
+            '*']
+
+def generate_cc_list():
+    return [ codon for aa in generate_aa_list() for codon in aa2codon[aa] ]
+
+def get_aa_colormap():
+    cmap = matplotlib.cm.Paired
+    clist = [ cmap(i) for i in np.linspace(0,1,12) ]
+    aa = generate_aa_list()
+    color = [ clist[i%12] for i in xrange(len(aa)) ]
+    return dict(zip(aa,color))
+
+def generate_codon_list_alphabetical():
     codon_list = []
     base_list = ['T', 'C', 'G', 'A']
     for b0 in base_list:
@@ -46,7 +90,7 @@ def generate_codon_list():
                 codon_list.append(codon)
     return codon_list
 
-def generate_aa_list():
+def generate_aa_list_alphabetical():
     codon_list = generate_codon_list()
     aa_list = []
     for codon in codon_list:
