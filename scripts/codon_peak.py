@@ -14,7 +14,6 @@ from matplotlib import rcParams
 rcParams['font.size'] = 12
 rcParams['xtick.major.size'] = 5
 rcParams['ytick.major.size'] = 5
-cmap = matplotlib.cm.Paired
 
 def get_peaks_from_profile(prof, start, stop, valid_func, peak_func):
     print "calling peaks..."
@@ -116,11 +115,11 @@ def get_frequency(peak, usage):
     return { k: cnt/float(usage[k]) for k, cnt in peak.iteritems()}
 
 def plot_codon_freq(codon_cnt, title, fn_prefix):
-    codon_list = generate_codon_list()
-    plot_cnt = len(codon_list)
-    c = [ cmap(i) for i in np.linspace(0,1,plot_cnt) ]
+    codon_list = generate_cc_list()
+    aa2color = get_aa_colormap()
+    c = [ aa2color[codon2aa[codon]] for codon in codon_list ]
     cnt_list = [ codon_cnt[codon] if codon in codon_cnt else 0 for codon in codon_list ]
-    x = range(plot_cnt)
+    x = range(len(codon_list))
     plt.figure(figsize=(12,6))
     plt.bar(x, cnt_list, color=c, edgecolor='white',align='center')
     plt.xticks(x, codon_list, rotation='vertical', fontsize=12)
@@ -140,11 +139,11 @@ def codon_cnt_to_aa_cnt(codon_cnt):
 
 def plot_aa_freq(aa_cnt, title, fn_prefix):
     aa_list = generate_aa_list()
-    plot_cnt = len(aa_list)
-    c = [ cmap(i) for i in np.linspace(0,1,plot_cnt) ]
+    aa2color = get_aa_colormap()
+    c = [ aa2color[aa] for aa in aa_list ]
     cnt_list = [ aa_cnt[aa] if aa in aa_cnt else 0 for aa in aa_list ]
     aa_name = [ aa2fullname[aa] for aa in aa_list]
-    x = range(plot_cnt)
+    x = range(len(aa_list))
     plt.figure(figsize=(12,6))
     plt.bar(x, cnt_list, color=c, edgecolor='white',align='center')
     plt.xticks(x, aa_name, rotation='vertical', fontsize=12)
@@ -154,34 +153,6 @@ def plot_aa_freq(aa_cnt, title, fn_prefix):
     plt.savefig(fn_prefix+"_aa.pdf", bbox_inches='tight')
     plt.close()
     
-
-if __name__ == "__main__": 
-    cds_txt = "../ref/cds_range.txt"
-    tfasta = "../ref/protein_coding_100_filtered.fasta"
-    p_nc_nb_fn = "../ribomap/Lib-5-5-15_2_AGTTCC_R1_nodup.base"
-    p_nc_wb_fn = "../ribomap/Lib-5-5-15_2_AGTTCC_R1_nonempty.base"
-    p_wc_nb_fn = "../ribomap/Lib-5-5-15_6_TCCCGA_R1_nodup.base"
-    p_wc_wb_fn = "../ribomap/Lib-5-5-15_6_TCCCGA_R1_nonempty.base"
-    odir = "../figures/prelim/codon_usage/"
-    start=20
-    stop=20
-
-    cds_range = get_cds_range(cds_txt)
-    tseq = get_tseq(tfasta, cds_range)
-    # no Chx collapse barcode
-    p_ncnb = get_peaks_from_histfile(p_nc_nb_fn, cds_range, start, stop)
-    # no Chx no collapse barcode
-    p_ncwb = get_peaks_from_histfile(p_nc_wb_fn, cds_range, start, stop)
-    # Chx collapse barcode
-    p_wcnb = get_peaks_from_histfile(p_wc_nb_fn, cds_range, start, stop)
-    # Chx no collapse barcode
-    p_wcwb = get_peaks_from_histfile(p_wc_wb_fn, cds_range, start, stop)
-    print "no chx barcode comparison 1: collapsed barcode 2:no collapse"
-    compare_two_peak_sets(p_ncnb, p_ncwb, start, stop, tseq, 'no Chx', odir+'noChxYNbarcode')    
-    print "10 chx barcode comarison 1: collapsed barcode 2: no collpase"
-    compare_two_peak_sets(p_wcnb, p_wcwb, start, stop, tseq, '10x Chx', odir+'Chx10YNbarcode')        
-    print "chx comarison (barcode collapsed) 1: no chx 2: 10 chx"
-    compare_two_peak_sets(p_ncnb, p_wcnb, start, stop, tseq, 'barcode collapsed', odir+'BarcodeYNChx')        
     
     
 
