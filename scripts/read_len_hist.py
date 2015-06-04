@@ -85,12 +85,14 @@ def plot_read_len_hist(tlist, fn_prefix):
                 rlen2cnt.setdefault(rlen, 0)
                 rlen2cnt[rlen] += cnt
     rlen_list = np.array(rlen2cnt.keys())
-    cnt_list = np.log(rlen2cnt.values())
-    plt.figure()
+    cnt_list = rlen2cnt.values()
+    fig_width = len(rlen_list)/10.0*1.5
+    plt.figure(figsize=(fig_width, 5))
     plt.bar(rlen_list-0.4, cnt_list, width=0.8, color='b', edgecolor='white', alpha=0.5)
     plt.xlabel('read length')
-    plt.ylabel('log read count')
-    plt.savefig(fn_prefix+"rlen_hist.pdf", bbox_inches='tight')
+    plt.ylabel('read count')
+    plt.xlim((min(rlen_list), max(rlen_list)))
+    plt.savefig(fn_prefix+"_rlen_hist.pdf", bbox_inches='tight')
     plt.close()
 
 def plot_read_len_frame_hist(meta_hist, rlrange, rlen_shifts, ibegin, iend, norm, color, fn_prefix):
@@ -154,6 +156,6 @@ def plot_rlen_hist_pipe():
     # plot_rlen_hist(meta_hist, [rlmin, rlmax], rlen_shifts, utr5_offset, 0, False, c, fn_prefix+"_n{0}_ns".format(-utr5_offset))
     # plot_rlen_hist(meta_hist, [rlmin, rlmax], rlen_shifts, utr5_offset, imax, False, c, fn_prefix+"_p{0}_ns".format(imax))
     # rlen_shifts = [ 0, -2, -1]
-    plot_read_len_frame_hist(meta_hist, [rlmin, rlmax], rlen_shifts, 1, imax, False, c, fn_prefix)
+    # plot_read_len_frame_hist(meta_hist, [rlmin, rlmax], rlen_shifts, 1, imax, False, c, fn_prefix)
 
 if __name__ == "__main__": plot_rlen_hist_pipe()
