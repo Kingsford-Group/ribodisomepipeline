@@ -1,0 +1,9 @@
+/home/hw1/scratch/scratch2/ribomap-playground/yeast/data/fasta/unstressed_noChx.fastq.gz
+/home/hw1/scratch/scratch2/ribomap-playground/yeast/data/fasta/unstressed_0015Chx.fastq.gz
+/home/hw1/scratch/scratch2/ribomap-playground/yeast/data/fasta/unstressed_006Chx.fastq.gz
+/home/hw1/scratch/scratch2/ribomap-playground/yeast/data/fasta/unstressed_02Chx.fastq.gz
+/home/hw1/scratch/scratch2/ribomap-playground/yeast/data/fasta/unstressed_1Chx.fastq.gz
+/home/hw1/scratch/scratch2/ribomap-playground/yeast/data/fasta/unstressed_8Chx.fastq.gz
+/home/hw1/scratch/scratch2/ribomap-playground/yeast/data/fasta/unstressed_100Chx1.fastq.gz
+/home/hw1/scratch/scratch2/ribomap-playground/yeast/data/fasta/unstressed_100Chx2.fastq.gz
+
