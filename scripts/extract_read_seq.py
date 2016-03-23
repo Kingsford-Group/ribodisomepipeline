@@ -57,15 +57,29 @@ def get_tseq(fn):
 
 # read in list of read counts and ref sequence
 # output raw read sequences
-def get_reads(tlist, tseq, min_len):
+def get_reads(tlist, tseq, min_len,max_len):
   rseqs = defaultdict(list)
   for tid in tlist:
      for rlen in tlist[tid]["prof"]:
-	if rlen < min_len:
+	if rlen < min_len or rlen> max_len:
 	  continue
 	for pos,count in tlist[tid]["prof"][rlen]:
 	  seq = tseq[tid][pos:pos+rlen]
 	  rseqs[tid].append((seq,count))
+  return rseqs
+
+def get_reads_region(tlist, tseq, min_len,max_len, offset, region_len):
+  rseqs = defaultdict(list)
+  for tid in tlist:
+     for rlen in tlist[tid]["prof"]:
+	if rlen < min_len or rlen> max_len:
+	  continue
+	for pos,count in tlist[tid]["prof"][rlen]:
+            if offset < 0:
+                seq = tseq[tid][pos+rlen+offset-region_len:pos+rlen+offset]
+            else:
+                seq = tseq[tid][pos+offset: pos+offset+region_len]
+	    rseqs[tid].append((seq,count))
   return rseqs
 
 #=============================
@@ -80,7 +94,7 @@ def main():
     ofa = sys.argv[3]
     tlist = parse_rlen_hist(hist_fn)
     tseq = get_tseq(rfa)
-    reads = get_reads(tlist, tseq, 40)
+    reads = get_reads_region(tlist, tseq, 57,61,15,9)
     with open(ofa,'w') as f:
 	for tid in reads:
 	  for ind,read in enumerate(reads[tid]):

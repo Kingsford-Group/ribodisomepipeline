@@ -27,7 +27,7 @@ def validate_Pop(p):
 
 def validate_profile(vec):
     # > 50% cnts > 1
-    return np.mean(vec>1)>0.5
+    return np.mean(np.array(vec)>1)>0.5
 
 #=============================
 # profile transformation
@@ -49,6 +49,10 @@ def in_frames(p):
     return p[::3]
 
 def codonp_from_basep(p, cds_range, merge_func):
+    """ 
+    build codon profile from base profile with merge_func
+    output format follows ribomap.base
+    """
     print "converting base counts to codon counts..."
     pc = {}
     for rid in p:

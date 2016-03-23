@@ -89,7 +89,7 @@ def transcript_codon_check(tfname, pfname, glist, cds_range):
     """
     exclude :
     1) transcripts that I cannot correctly encode to peptides
-    2) transcripts with stop codon in the middle
+    # now kept 2) transcripts with stop codon in the middle
     3) transcripts with duplicated sequences
     4) peptide sequence length less than 3 after getting rid of start and end of the seq
     """
