@@ -154,7 +154,7 @@ def plot_rlen_hist_pipe():
     c = ['purple', 'blue', 'cyan' ]
     meta_hist = create_meta_profile(tlist, cds_range, "5p", utr5_offset, utr3_offset)
     fn_prefix = odir+"/"+get_file_core(hist_fn)
-    plot_read_len_hist(tlist, fn_prefix, 33, 90)
+    plot_read_len_hist(tlist, fn_prefix)
     rlen_shifts = [ 0, 0, 0 ]
     # plot_rlen_hist(meta_hist, [rlmin, rlmax], rlen_shifts, utr5_offset, 0, False, c, fn_prefix+"_n{0}_ns".format(-utr5_offset))
     # plot_rlen_hist(meta_hist, [rlmin, rlmax], rlen_shifts, utr5_offset, imax, False, c, fn_prefix+"_p{0}_ns".format(imax))
