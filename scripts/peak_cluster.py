@@ -1,24 +1,25 @@
 #!/usr/bin/env python
-import random
 import numpy as np
-import scipy.stats
 from ribomap_result_parser import *
+
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
-
 
 rcParams['font.size'] = 20
 rcParams['xtick.major.size'] = 5
 rcParams['ytick.major.size'] = 5
 cmap = matplotlib.cm.gist_rainbow
 
-def validate_profile(vec):
+def validate_profile(vec, cnt_cutoff=1):
     # > 50% cnts > 1
-    return np.mean(vec>1)>0.5
+    return np.mean(vec>cnt_cutoff)>0.5
 
 def threshold(vec):
     return np.median(vec)+2*np.std(vec)
+
+def threshold_with_min(vec, min_cnt=3):
+    return max(min_cnt, threshold(vec))
 
 def identify_peaks(vec, peak_func):
     return vec > peak_func(vec)
@@ -39,13 +40,13 @@ def cluster_peaks(peak, peak_width, seg_len):
             if i- end + 1 <= peak_width:
                 end = i
             else:
-                seg_list.append((start,end))
+                seg_list.append((start,end+1))
                 start = i
                 end = i
         i += 1
     # add last segment to list
     if len(seg_list)!=0 and end != seg_list[-1][1]:
-        seg_list.append((start,end))
+        seg_list.append((start,end+1))
     return [ s for s in seg_list if (s[1]-s[0]+1)>seg_len ]
 
 def peak_dist(p,d):
@@ -163,29 +164,6 @@ def first_segs(p,peak_width, seg_len):
     plt.xlabel("waterfall location")
     plt.ylabel("number of transcripts")
     plt.savefig("first_seg_end_hist.pdf", bbox_inches='tight')
-
-def get_cds_range(fn):
-    print "getting cds range.."
-    ifile = open(fn, 'r')
-    cds_range = {}
-    for line in ifile:
-        tid, start, stop = line.strip().split()
-        cds_range[tid] = (int(start), int(stop))
-    ifile.close()
-    return cds_range
-
-def get_tseq(fn, cds_range):
-    print "getting transcript sequences..."
-    from Bio import SeqIO
-    ifile = open(fn, 'r')
-    tseq = {}
-    for rec in SeqIO.parse(ifile, "fasta"):
-        tid = rec.id.split()[0]
-        start, stop = cds_range[tid]
-        seq = str(rec.seq[start:stop])
-        tseq[tid] = seq
-    ifile.close()
-    return tseq
 
 def main():
     p=parse_estimated_profile("BY_FP.codon")

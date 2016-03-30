@@ -39,7 +39,7 @@ def parse_rlen_hist(fname):
         rid = transcript["id"]
         tlist[rid] = transcript
     tf.close()
-    print "\n"
+    sys.stdout.write('\n')
     return tlist
 
 #=============================

@@ -75,7 +75,7 @@ def create_meta_profile(tlist, cds_range, rend, ibegin, iend):
 #===============================
 # plot read length distribution
 #===============================
-def plot_read_len_hist(tlist, fn_prefix):
+def plot_read_len_hist(tlist, fn_prefix, rlen_min=0, rlen_max=1000):
     print "plotting read length distribution..."
     rlen2cnt = {}
     for rid in tlist:
@@ -85,13 +85,16 @@ def plot_read_len_hist(tlist, fn_prefix):
                 rlen2cnt.setdefault(rlen, 0)
                 rlen2cnt[rlen] += cnt
     rlen_list = np.array(rlen2cnt.keys())
-    cnt_list = rlen2cnt.values()
+    select = (rlen_list >= rlen_min) & (rlen_list <= rlen_max)
+    rlen_select = rlen_list[select]
+    cnt_list = np.array(rlen2cnt.values())
+    cnt_select = cnt_list[select]
     fig_width = len(rlen_list)/10.0*1.5
     plt.figure(figsize=(fig_width, 5))
-    plt.bar(rlen_list-0.4, cnt_list, width=0.8, color='b', edgecolor='white', alpha=0.5)
+    plt.bar(rlen_select-0.4, cnt_select, width=0.8, color='b', edgecolor='white', alpha=0.5)
     plt.xlabel('read length')
     plt.ylabel('read count')
-    plt.xlim((min(rlen_list), max(rlen_list)))
+    plt.xlim((min(rlen_select)-1, max(rlen_select)+1))
     plt.savefig(fn_prefix+"_rlen_hist.pdf", bbox_inches='tight')
     plt.close()
 
@@ -151,7 +154,7 @@ def plot_rlen_hist_pipe():
     c = ['purple', 'blue', 'cyan' ]
     meta_hist = create_meta_profile(tlist, cds_range, "5p", utr5_offset, utr3_offset)
     fn_prefix = odir+"/"+get_file_core(hist_fn)
-    plot_read_len_hist(tlist, fn_prefix)
+    plot_read_len_hist(tlist, fn_prefix, 33, 90)
     rlen_shifts = [ 0, 0, 0 ]
     # plot_rlen_hist(meta_hist, [rlmin, rlmax], rlen_shifts, utr5_offset, 0, False, c, fn_prefix+"_n{0}_ns".format(-utr5_offset))
     # plot_rlen_hist(meta_hist, [rlmin, rlmax], rlen_shifts, utr5_offset, imax, False, c, fn_prefix+"_p{0}_ns".format(imax))

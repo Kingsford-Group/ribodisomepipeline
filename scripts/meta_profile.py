@@ -182,7 +182,7 @@ def plot_rlen_hist_pipe():
     hist_fn = sys.argv[2]
     odir = sys.argv[3]
     utr5_offset = -24
-    imax = 50  # right most position form the 5' end to sample for historgram
+    imax = 300  # right most position form the 5' end to sample for historgram
     min_sample_cnt = 100
     ensure_dir(odir)
     cds_range = get_cds_range(cds_txt)

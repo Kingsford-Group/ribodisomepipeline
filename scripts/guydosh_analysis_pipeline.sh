@@ -94,6 +94,7 @@ nproc=30
 # for f in ${trim_dir}*.gz ; do
 #     ./read_align.sh $f ${align_dir}
 # done
+
 # #==============================
 # # step 6: read len hist
 # #==============================
@@ -102,10 +103,10 @@ nproc=30
 #     fcore=${fcore%%_transcript_Aligned*}
 #     ${src_dir}read_len_hist $f ${hist_dir}${fcore}.hist
 # done
-# for f in ${hist_dir}*.hist; do
-#     python read_len_hist.py ${cds_range} $f ${fig_dir}
-#     python meta_profile.py ${cds_range} $f ${fig_dir}
-# done
+for f in ${hist_dir}*.hist; do
+    python read_len_hist.py ${cds_range} $f ${fig_dir}
+    python meta_profile.py ${cds_range} $f ${fig_dir}
+done
 
 #==============================
 # step 7: ribomap result
@@ -152,3 +153,6 @@ run_ribomap ${riboseq_fq} ${riboseq_fq}
 #
 # this means STAR index needs to be regenerated
 # quick fix is skip STAR align for now
+
+# experiment procedure:
+# cells are freezed in liquid nitrogen, with CHX added to buffer

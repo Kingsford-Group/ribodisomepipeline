@@ -61,8 +61,8 @@ def codonp_from_basep(p, cds_range, merge_func):
         if (end-start)%3 != 0: 
             print "profile length not a duplicate of 3!", tid
             exit(1)
-        pmr = merge_func(p[rid]['rprofile'][start:end])
-        pmn = merge_func(p[rid]['nprofile'][start:end])
+        pmr = np.array(merge_func(p[rid]['rprofile'][start:end]))
+        pmn = np.array(merge_func(p[rid]['nprofile'][start:end]))
         pmm = p[rid]['mprofile'][start:end]
         pc[rid] = { 'tid' : tid,
                     'rprofile' : pmr,

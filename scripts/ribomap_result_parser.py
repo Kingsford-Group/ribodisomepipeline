@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 from Bio import SeqIO
 
 def parse_true_profile(fname):
@@ -14,6 +15,8 @@ def parse_true_profile(fname):
                 ptruth[rid] = transcript.copy()
                 transcript.clear()
             rid = int(line.lstrip("refID: ").rstrip("\n"))
+            sys.stdout.write("processed transcript {0}.\t\r".format(rid))
+            sys.stdout.flush()
             transcript["id"] = rid
         elif line.startswith("tid: "):
             tid = line.lstrip("tid: ").rstrip("\n")
@@ -49,6 +52,7 @@ def parse_true_profile(fname):
         rid = transcript["id"]
         ptruth[rid] = transcript
     tf.close()
+    sys.stdout.write('\n')
     return ptruth
 
 def parse_estimated_profile(fname):
@@ -64,6 +68,8 @@ def parse_estimated_profile(fname):
                 pest[rid] = transcript.copy()
                 transcript.clear()
             rid = int(line.lstrip("refID: ").rstrip("\n"))
+            sys.stdout.write("processed transcript {0}.\t\r".format(rid))
+            sys.stdout.flush()
             transcript["id"] = rid
         elif line.startswith("tid: "):
             tid = line.lstrip("tid: ").rstrip("\n")
@@ -84,6 +90,7 @@ def parse_estimated_profile(fname):
         rid = transcript["id"]
         pest[rid] = transcript
     tf.close()
+    sys.stdout.write('\n')
     return pest
 
 def parse_stats(fname):
