@@ -3,10 +3,10 @@ import os
 import sys
 import numpy as np
 import scipy.stats
-from footprint_hist_parser import parse_rlen_hist, get_cds_range
+from footprint_hist_parser import parse_rlen_hist, get_cds_range, get_tseq
 from ribomap_result_parser import parse_estimated_profile
 from ribofit_utils import validate_profile, codonp_from_basep, sum_frames
-from peak_cluster import threshold_with_min, identify_peaks, cluster_peaks
+from peak_cluster import threshold, threshold_with_min, identify_peaks, cluster_peaks
 from file_names import *
 
 import matplotlib
@@ -67,7 +67,7 @@ def get_tid2basep_from_ribomap_base(ribomap_fname, cds_range):
         tid = sp_base[rid]['tid']
         start, stop = cds_range[tid]
         pcds = sp_base[rid]['rprofile'][start:stop]
-        sp_cds[tid] = pcds
+        sp_cds[tid] = np.array(pcds)
     return sp_cds
 
 def merge_count_per_codon(tid2prof, merge_func):
@@ -77,6 +77,11 @@ def merge_count_per_codon(tid2prof, merge_func):
     """
     return { tid : np.array(merge_func(p)) for tid, p in tid2prof.iteritems() }
 
+def batch_peak_call(tid2prof, peak_min_cutoff=3):
+    thresh = lambda vec : threshold_with_min(vec, peak_min_cutoff)
+    tid2peak = { tid: identify_peaks(prof, thresh) for tid, prof in tid2prof.iteritems() }
+    return { tid : peak for tid, peak in tid2peak.iteritems() if np.any(peak!=False) }
+        
 def get_tid2codonp_from_ribomap_base(ribomap_fname, cds_range, merge_func=sum_frames):
     """
     input: ribomap nucleotide profile
@@ -113,15 +118,25 @@ def get_peak_segs(codonp, peak_width=3, peak_min_cutoff=3):
     print "total peaks (merged) {0}".format(pcnt)
     return peak_segs
 
-def peak_segs_from_rlen_hist_pipeline(fname, cds_range):
+def generate_base_profile_from_rlen_hist(fname, cds_range):
     """
-    build a list of peak start,end,count per transcript from rlen hist
     default globals: dlen_min, dlen_max, peak_width, peak_min_cutoff
     """
     print os.path.basename(fname)
     reads = parse_rlen_hist(fname)
     basep = generate_cds_profile(reads, dlen_min, dlen_max, cds_range)
+    return basep
+
+def generate_codon_profile_from_rlen_hist(fname, cds_range):
+    basep = generate_base_profile_from_rlen_hist(fname, cds_range)
     codonp = merge_count_per_codon(basep, sum_frames)
+    return codonp
+
+def peak_segs_from_rlen_hist_pipeline(fname, cds_range):
+    """
+    build a list of peak start,end,count per transcript from rlen hist
+    """
+    codonp = generate_codon_profile_from_rlen_hist(fname, cds_range)
     peak_segs = get_peak_segs(codonp, peak_width, peak_min_cutoff)
     return peak_segs
 
@@ -132,7 +147,7 @@ def get_top_tid_list(prof, top_func=np.mean, percentile=0.1):
     percent_cutoff = int(len(order)*percentile)
     return tid_list[order][:percent_cutoff].flatten()
 
-def plot_dsprof(dp, sp, tid, figname):
+def plot_dsprof(dp, sp, tid, figname, grid=False):
     cds_len = len(dp)
     assert len(dp) == len(sp)
     x_pos = np.arange(cds_len)
@@ -140,14 +155,16 @@ def plot_dsprof(dp, sp, tid, figname):
     width = min(300, int(cds_len/10.0*1.5))
     plt.figure(figsize=(width, 15))
     plt.subplot(2,1,1)
-    plt.vlines(xgrid, [0]*len(xgrid), [max(dp)+1]*len(xgrid), 'r', linewidths=5, alpha=0.1)
+    if grid == True:
+        plt.vlines(xgrid, [0]*len(xgrid), [max(dp)+1]*len(xgrid), 'r', linewidths=5, alpha=0.1)
     plt.vlines(x_pos, [0]*cds_len, dp, 'k', linewidths=5, alpha=0.5)
     plt.xticks(np.arange(0,cds_len, 10))
     plt.xlim((-1, cds_len))
     plt.ylim((0,max(dp)+1))
     plt.title("{0}\ndoublet profile".format(tid))
     plt.subplot(2,1,2)
-    plt.vlines(xgrid, [0]*len(xgrid), [max(sp)+1]*len(xgrid), 'r', linewidths=5, alpha=0.1)
+    if grid == True:
+        plt.vlines(xgrid, [0]*len(xgrid), [max(sp)+1]*len(xgrid), 'r', linewidths=5, alpha=0.1)
     plt.vlines(x_pos, [0]*cds_len, sp, 'k', linewidths=5, alpha=0.5)
     plt.xticks(np.arange(0,cds_len, 10))
     plt.xlim((-1, cds_len))
@@ -166,24 +183,11 @@ def plot_dsprof(dp, sp, tid, figname):
     plt.close()
     print "{0} len: {1} average doublet: {2:.2f} collision rate: {3:.2%}".format(tid, len(sp), np.mean(dp), cr)
 
-if __name__ == "__main__":
-    cds_range = get_cds_range(cds_txt)    
-    fig_dir = "./test/"
-
-    # peak_nchx = peak_segs_from_rlen_hist_pipeline(nchx_dfn, cds_range)
-    # peak_chx = peak_segs_from_rlen_hist_pipeline(chx_dfn, cds_range)
-    # peak_wt = peak_segs_from_rlen_hist_pipeline(wt_dfn, cds_range)
-    # peak_dom34 = peak_segs_from_rlen_hist_pipeline(dom34_dfn, cds_range)
-
-
-    doublets = parse_rlen_hist(nchx_dfn)
-    dpb_nchx = generate_cds_profile(doublets, dlen_min, dlen_max, cds_range)
-    doublets = parse_rlen_hist(chx_dfn)
-    dpb_chx = generate_cds_profile(doublets, dlen_min, dlen_max, cds_range)
-    doublets = parse_rlen_hist(wt_dfn)
-    dpb_wt = generate_cds_profile(doublets, dlen_min, dlen_max, cds_range)
-    doublets = parse_rlen_hist(dom34_dfn)
-    dpb_dom34 = generate_cds_profile(doublets, dlen_min, dlen_max, cds_range)
+def plot_high_coverage_doublets(cds_range, fig_dir):
+    dpb_nchx = generate_base_profile_from_rlen_hist(nchx_dfn, cds_range)
+    dpb_chx = generate_base_profile_from_rlen_hist(chx_dfn, cds_range)
+    dpb_wt = generate_base_profile_from_rlen_hist(wt_dfn, cds_range)
+    dpb_dom34 = generate_base_profile_from_rlen_hist(dom34_dfn, cds_range)
 
     tid_dset = set(get_top_tid_list(dpb_nchx, np.mean, 0.01))
     tid_dset &= set(get_top_tid_list(dpb_chx, np.mean, 0.01))
@@ -210,16 +214,102 @@ if __name__ == "__main__":
         plot_dsprof(dpb_dom34[tid], spb_dom34[tid], "{0}_dom34".format(tid), "{0}{1}_4dom34.pdf".format(fig_dir,tid))
 
 
+def generate_dist_list(dpeaks, speaks, dstart, dend):
+    dist_list = []
+    dcnt = 0
+    for tid in dpeaks:
+        dcnt += np.sum(dpeaks[tid])
+        if tid not in speaks: continue
+        for dpos in np.where(dpeaks[tid])[0]:
+            istart = dpos+dstart
+            iend = dpos+dend
+            if istart<0 or istart >= len(dpeaks[tid]): continue
+            if dstart > 0 and dend > dstart:
+                spos_list = np.where(speaks[tid][istart:iend])[0]
+                if len(spos_list)== 0: continue
+                spos = spos_list[0] + istart 
+            if dstart <= 0 and dend < dstart:
+                spos_list = np.where(speaks[tid][iend:istart])[0]
+                if len(spos_list) == 0: continue
+                spos = spos_list[-1]
+            if (dstart>0 and dend<dstart) or (dstart<=0 and dend>dstart):
+                print "wrong definition of dstart {0} and dend {1}!".format(dstart, dend)
+                exit(1)
+            dist_list.append([tid, dpos, spos])
+    print "coupled peaks: {0} out of {1} ({2:.2%})".format(len(dist_list), dcnt, len(dist_list)/float(dcnt))
+    return dist_list
 
-    # # high coverage transcript
-    # sp_codon = get_tid2codonp_from_ribomap_base(nchx_sfn, cds_range)
-    # tid_nchx = get_hc_list_from_prof(sp_codon)
-    # print "# high coverage transcript:", len(tid_list)
+def get_doublet_singlet_peak_base_dist(dfname, sfname, cds_range, dstart=40, dend=100):
+    """
+    return list: [transcript_id, doublet_loc, doublet_cnt, singlet_loc, singlet_cnt]
+    default globals: dlen_min, dlen_max, peak_width, peak_min_cutoff
+    """
+    dbp = generate_base_profile_from_rlen_hist(dfname, cds_range)
+    dpeaks = batch_peak_call(dbp)
+    print "singlet", os.path.basename(sfname)
+    sbp = get_tid2basep_from_ribomap_base(sfname, cds_range)
+    speaks = batch_peak_call(sbp)
+    dist_list = generate_dist_list(dpeaks, speaks, dstart, dend)
+    return [ [tid, dpos, int(dbp[tid][dpos]), spos, int(sbp[tid][spos])] for tid,dpos,spos in dist_list]
+    
+def get_doublet_singlet_peak_codon_dist(dfname, sfname, cds_range, tseq, dstart=10, dend=40, seq_window=20):
+    """
+    return list: [transcript_id, doublet_loc, doublet_cnt, singlet_loc, singlet_cnt, codon ]
+    default globals: dlen_min, dlen_max, peak_width, peak_min_cutoff
+    """
+    dcp = generate_codon_profile_from_rlen_hist(dfname, cds_range)
+    dpeaks = batch_peak_call(dcp)
+    print "singlet", os.path.basename(sfname)
+    scp = get_tid2codonp_from_ribomap_base(sfname, cds_range)
+    speaks = batch_peak_call(scp)
+    dist_list = generate_dist_list(dpeaks, speaks, dstart, dend)
+    return [ [tid, dpos, int(dcp[tid][dpos]), spos, int(scp[tid][spos]), tseq[tid][(spos-seq_window)*3:(spos+1+seq_window)*3]] for tid,dpos,spos in dist_list ]
+
+def write_list_to_file(flist, header, fname):
+    tf = open(fname,'w')
+    tf.write(header)
+    for f in flist:
+        tf.write('\t'.join(map(str,f))+'\n')
+    tf.close()
+
+def main():
+    """
+    get a list of coupled peaks in singlet and doublet
+    """
+    cds_range = get_cds_range(cds_txt)    
+    tseq = get_tseq(tfasta, cds_range)
+
+    dstart = 10
+    dend = 40
+    odir = "../ds_cmp/"
+    header = "transcript_id\tdoublet_loc\tdoublet_cnt\tsinglet_loc\tsinglet_cnt\tseq_in_20_codons\n"
+
+    dist_list = get_doublet_singlet_peak_codon_dist(nchx_dfn, nchx_sfn, cds_range, tseq)
+    fname = odir+"nchx.txt"
+    write_list_to_file(dist_list, header, fname)
+    
+    #dist_list = get_doublet_singlet_peak_base_dist(chx_dfn, chx_sfn, cds_range)
+    dist_list = get_doublet_singlet_peak_codon_dist(chx_dfn, chx_sfn, cds_range, tseq)
+    fname = odir+"chx.txt"
+    write_list_to_file(dist_list, header, fname)
+
+    dist_list = get_doublet_singlet_peak_codon_dist(wt_dfn, wt_sfn, cds_range, tseq)
+    fname = odir+"wt.txt"
+    write_list_to_file(dist_list, header, fname)
+
+    dist_list = get_doublet_singlet_peak_codon_dist(dom34_dfn, dom34_sfn, cds_range, tseq)
+    fname = odir+"dom34.txt"
+    write_list_to_file(dist_list, header, fname)
+
+    # dlist = [ l[3]-l[1] for l in dist_list ]
+    # if dstart > dend:
+    #     bins = np.arange(dend-1, dstart+2)
+    # else:
+    #     bins = np.arange(dstart-1, dend+2)
+    # ns,bins,patches = plt.hist(dlist,bins,alpha=0.5)
+    # plt.savefig('test.pdf')
+
+if __name__ == "__main__": main()
 
 
-    # histogram of doublet density per transcript
-    # ns, bins, patches = plt.hist(dd, 50, log=True)
-    # plt.savefig('doublet_density.pdf')
-    # plt.close()
-    # plot individual doublet and singlet profiles
 
