@@ -166,7 +166,6 @@ if __name__ == "__main__":
     print "singlet sum: {0:.2f}".format(correlate_two_sets(scnt_nchx, scnt_dom34, 'no CHX', 'DOM34 knock out', 'ribosome loads (all)', 'ss_nchx_dom34_all.pdf')),
     print "doublet sum: {0:.2f}".format(correlate_two_sets(dcnt_nchx, dcnt_dom34, 'no CHX', 'DOM34 knock out', 'doublet loads (all)', 'ds_nchx_dom34_all.pdf'))
 
-
     cr_nchx, scnt_nchx, dcnt_nchx = get_collision_rate(cds_range, nchx_dfn, nchx_sfn, True)
     cr_chx, scnt_chx, dcnt_chx = get_collision_rate(cds_range, chx_dfn, chx_sfn, True)
     cr_wt, scnt_wt, dcnt_wt = get_collision_rate(cds_range, wt_dfn, wt_sfn, True)
