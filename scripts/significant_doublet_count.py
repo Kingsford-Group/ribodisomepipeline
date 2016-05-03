@@ -75,12 +75,13 @@ def collision_significance_pipe(cds_range, sfname, dfname, ofname, sd_distance, 
     tid_list = get_hc_list_from_prof(scp)
     if peak_type == 'singlet':
         profiles = dcp
+        peaks = batch_peak_call(scp)
     elif peak_type == 'doublet':
         profiles = scp
+        peaks = batch_peak_call(dcp)
     else:
         print "peak type {0} not supported!".format(peak_type)
         exit(1)
-    peaks = batch_peak_call(scp)
     peak_hc = { tid:peaks[tid] for tid in tid_list if tid in peaks }
     tid2pvals = batch_peak_pval(peak_hc, profiles, sd_distance, window_size)
     write_pvals_to_file(tid2pvals, ofname)
