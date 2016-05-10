@@ -10,3 +10,7 @@ disome pipeline
 7. align reads `scripts/batch_align.sh`
 8. align reads without barcode collapsing `scripts/batch_align_no_collapse.sh`
 9. meta profile analysis per read length on alignments `scripts/meta_analysis.sh`
+
+#### Notes on analysis settings
+* __transcriptome__ (for alignment) all transcripts included (no filter for overlapping genes)
+* __read count summary__ all reads used (including multi-mapped reads)
