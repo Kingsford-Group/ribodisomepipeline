@@ -14,6 +14,7 @@ disome pipeline
 #### Multi-mapping steps (with ribomap)
 1. call ribomap `scripts/ribomap_runner.sh` (for singlet profiles)
 2. accumulate read count (for doublet profiles):  
+
   1.`src/read_len_hist.cpp` comment out line `95--97` 
   2. under `src` directory, `make read_len_hist`
   3. run `src/read_len_hist` on doublet library
