@@ -12,6 +12,7 @@ disome pipeline
 9. meta profile analysis per read length on alignments `scripts/meta_analysis.sh`
 
 #### Multi-mapping steps (with ribomap)
+
 1. call ribomap `scripts/ribomap_runner.sh` (for singlet profiles)
 2. accumulate read count (for doublet profiles):
   1.`src/read_len_hist.cpp` comment out line `95--97` 
