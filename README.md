@@ -10,6 +10,7 @@ disome pipeline
 7. align reads `scripts/batch_align.sh`
 8. align reads without barcode collapsing `scripts/batch_align_no_collapse.sh`
 9. meta profile analysis per read length on alignments `scripts/meta_analysis.sh`
+
 #### Multi-mapping steps (with ribomap)
 1. call ribomap `scripts/ribomap_runner.sh` (for singlet profiles)
 2. accumulate read count (for doublet profiles):
