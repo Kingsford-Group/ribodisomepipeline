@@ -20,9 +20,9 @@ disome pipeline
 #### unique-mapping steps (with ribodeblur)
 1. accumulate read count (for _doublet_ profiles):
   1. under `src` directory, `make read_len_hist_unique`
-  2. run `src/read_len_hist_unique` on doublet library
+  2. call `src/read_len_hist_unique` on doublet library in step 2
 2. run `scripts/run_deblur.sh` to get deblur results
-3. __notes:__ location of deblur codes are specified under `scripts/deblur_unique_reads.sh`, input bams, output directory are specified under `scripts/file_names.sh`
+3. _notes:_ location of deblur codes are specified under `scripts/deblur_unique_reads.sh`, input bams, output directory are specified under `scripts/file_names.sh`
 
 #### Notes on analysis settings
 * __transcriptome__ (for alignment) all transcripts included (no filter for overlapping genes)
