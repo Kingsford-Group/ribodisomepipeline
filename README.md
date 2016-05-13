@@ -24,6 +24,9 @@ disome pipeline
 2. run `scripts/run_deblur.sh` to get deblur results
 3. _notes:_ location of deblur codes is specified under `scripts/deblur_unique_reads.sh`, input bams, output directory are specified under `scripts/file_names.sh`
 
+#### Analysis
+1. cdf on doublet positions: `scripts/positional_analysis.py`
+
 #### Notes on analysis settings
 * __transcriptome__ (for alignment) all transcripts included (no filter for overlapping genes)
 * __read count summary__ all reads used (including multi-mapped reads)
