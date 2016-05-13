@@ -65,3 +65,5 @@ sd_distance = 13
 window_size = 5
 ds_distance = -(sd_distance + window_size)
 sample_size = 1000000
+# multimapping toggle
+multimap = False
