@@ -70,6 +70,10 @@ def codonp_from_basep(p, cds_range, merge_func):
                     'mprofile' : pmm}
     return pc
 
+def codonp_from_basep_cds(pb, merge_func):
+    print "gathering codon counts...."
+    return { tid: merge_func(prof) for tid, prof in pb.iteritems() }
+
 def merge_reps(p1,p2):
     p_sum = {}
     rid_list = list(set(p1.keys())|set(p2.keys()))
