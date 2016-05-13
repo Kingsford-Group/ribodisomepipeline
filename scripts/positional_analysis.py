@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
-from doublet_profile import generate_codon_profile_from_rlen_hist, get_tid2codonp_from_ribomap_base
-from footprint_hist_parser import get_cds_range
+from doublet_profile import generate_codon_profile_from_rlen_hist, get_tid2codonp_from_ribomap_base, get_codon_profile_from_deblur_profile
+from io_utils import get_cds_range
 from file_names import *
 
 import matplotlib
@@ -59,9 +59,12 @@ def get_accumulative_count_absolute_pos(tid2prof, len_lim=200, normed=True):
     # print "included transcripts {0} ({1:.2%})".format(tcnt, float(tcnt)/len(tid2prof))
     return acc_cnt
 
-def positional_analysis_pipeline(sfname, dfname, cds_range, len_lim, oprfx):
+def positional_analysis_pipeline(sfname, dfname, cds_range, len_lim, oprfx, multimap=False):
     dcp = generate_codon_profile_from_rlen_hist(dfname, cds_range)
-    scp = get_tid2codonp_from_ribomap_base(sfname, cds_range)
+    if multimap == True:
+        scp = get_tid2codonp_from_ribomap_base(sfname, cds_range)
+    else:
+        scp = get_codon_profile_from_deblur_profile(sfname)
     accd_rpos = get_accumulative_count_absolute_pos(dcp, len_lim)
     accs_rpos = get_accumulative_count_absolute_pos(scp, len_lim)
 
@@ -91,8 +94,8 @@ def positional_analysis_pipeline(sfname, dfname, cds_range, len_lim, oprfx):
 
 if __name__ == "__main__":
     cds_range = get_cds_range(cds_txt)
-    len_lim = 1000
-    positional_analysis_pipeline(nchx_sfn, nchx_dfn, cds_range, len_lim, "../ds_cmp/nchx")
-    positional_analysis_pipeline(chx_sfn, chx_dfn, cds_range, len_lim, "../ds_cmp/chx")
-    positional_analysis_pipeline(wt_sfn, wt_dfn, cds_range, len_lim, "../ds_cmp/wt")
-    positional_analysis_pipeline(dom34_sfn, dom34_dfn, cds_range, len_lim, "../ds_cmp/dom34")
+    len_lim = 200
+    positional_analysis_pipeline(nchx_sfn, nchx_dfn, cds_range, len_lim, "../uniquely_mapped/figures/nchx", multimap)
+    positional_analysis_pipeline(chx_sfn, chx_dfn, cds_range, len_lim, "../uniquely_mapped/figures/chx", multimap)
+    positional_analysis_pipeline(wt_sfn, wt_dfn, cds_range, len_lim, "../uniquely_mapped/figures/wt", multimap)
+    positional_analysis_pipeline(dom34_sfn, dom34_dfn, cds_range, len_lim, "../uniquely_mapped/figures/dom34", multimap)
