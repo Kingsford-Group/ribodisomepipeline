@@ -3,9 +3,8 @@ import os
 import sys
 import numpy as np
 import scipy.stats
-from footprint_hist_parser import parse_rlen_hist, get_cds_range, get_tseq
-from ribomap_result_parser import parse_estimated_profile
-from ribofit_utils import validate_profile, codonp_from_basep, sum_frames
+from io_utils import *
+from ribofit_utils import validate_profile, codonp_from_basep, codonp_from_basep_cds, sum_frames
 from peak_cluster import threshold, threshold_with_min, identify_peaks, cluster_peaks
 from file_names import *
 
@@ -69,6 +68,13 @@ def get_tid2basep_from_ribomap_base(ribomap_fname, cds_range):
         pcds = sp_base[rid]['rprofile'][start:stop]
         sp_cds[tid] = np.array(pcds)
     return sp_cds
+
+def get_codon_profile_from_deblur_profile(deblur_fn, merge_func=sum_frames):
+    print os.path.basename(deblur_fn)
+    pribo=parse_deblur_profile(deblur_fn)
+    print_frame_stats(pribo)
+    pribo_codon = codonp_from_basep_cds(pribo, merge_func)
+    return pribo_codon
 
 def merge_count_per_codon(tid2prof, merge_func):
     """

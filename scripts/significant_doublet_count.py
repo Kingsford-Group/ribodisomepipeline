@@ -67,12 +67,16 @@ def read_pvals_from_file(fname):
     tf.close()
     return tid2pvals
 
-def collision_significance_pipe(cds_range, sfname, dfname, ofname, sd_distance, window_size, peak_type='singlet'):
+def collision_significance_pipe(cds_range, sfname, dfname, ofname, sd_distance, window_size, peak_type='singlet', multimap=False):
     print "doublet", os.path.basename(dfname)
     dcp = generate_codon_profile_from_rlen_hist(dfname, cds_range)
     print "singlet", os.path.basename(sfname)
-    scp = get_tid2codonp_from_ribomap_base(sfname, cds_range)
-    tid_list = get_hc_list_from_prof(scp)
+    if multimap == True:
+        scp = get_tid2codonp_from_ribomap_base(sfname, cds_range)
+    elif multimap == False:
+        scp = get_codon_profile_from_deblur_profile(sfname)
+    print "total doublet profiles: {0}".format(len(dcp))
+    print "total singlet profiles: {0}".format(len(scp))
     if peak_type == 'singlet':
         profiles = dcp
         peaks = batch_peak_call(scp)
@@ -82,14 +86,17 @@ def collision_significance_pipe(cds_range, sfname, dfname, ofname, sd_distance, 
     else:
         print "peak type {0} not supported!".format(peak_type)
         exit(1)
+    tid_list = get_hc_list_from_prof(scp)
+    print "high coverage transcripts: {0}".format(len(tid_list))
     peak_hc = { tid:peaks[tid] for tid in tid_list if tid in peaks }
     tid2pvals = batch_peak_pval(peak_hc, profiles, sd_distance, window_size)
     write_pvals_to_file(tid2pvals, ofname)
+    print "done computing pvalues."
 
 if __name__ == "__main__":
     cds_range = get_cds_range(cds_txt)
-    if len(sys.argv) != 7:
-        print "Usage: python significant_doublet_count.py doublet.hist singlet.ribomap output.txt"
+    if len(sys.argv) != 8:
+        print "Usage: python significant_doublet_count.py doublet.hist singlet.profile output.txt enrich_window_distance enrich_window_size peak_type multimapping"
         exit(1)
     dfname = sys.argv[1]
     sfname = sys.argv[2]
@@ -97,5 +104,6 @@ if __name__ == "__main__":
     sd_distance = int(sys.argv[4])
     window_size = int(sys.argv[5])
     peak_type = sys.argv[6]
+    multimap = True if sys.argv[7] == 'True' else False
 
-    collision_significance_pipe(cds_range, sfname, dfname, ofname, sd_distance, window_size, peak_type)    
+    collision_significance_pipe(cds_range, sfname, dfname, ofname, sd_distance, window_size, peak_type, multimap)    

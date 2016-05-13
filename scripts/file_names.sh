@@ -10,5 +10,5 @@ wt_dbam=${guydosh_align}Guydosh14_wt_disome_transcript_Aligned.out.bam
 wt_sbam=${guydosh_align}Guydosh14_wt_CHX_transcript_Aligned.out.bam
 dom34_dbam=${guydosh_align}Guydosh14_dom34KO_disome_transcript_Aligned.out.bam
 dom34_sbam=${guydosh_align}Guydosh14_dom34KO_CHX_transcript_Aligned.out.bam
-rlen_hist_dir=${work_dir}/uniquely_mapped/
+rlen_hist_dir=${work_dir}/uniquely_mapped/profiles/
 
