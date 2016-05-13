@@ -26,6 +26,7 @@ disome pipeline
 
 #### Analysis
 1. cdf on doublet positions: `scripts/positional_analysis.py`
+2. codon enrichment in jams: `scripts/jam_analysis.py`
 
 #### Notes on analysis settings
 * __transcriptome__ (for alignment) all transcripts included (no filter for overlapping genes)

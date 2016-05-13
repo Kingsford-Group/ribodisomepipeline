@@ -95,7 +95,7 @@ def positional_analysis_pipeline(sfname, dfname, cds_range, len_lim, oprfx, mult
 if __name__ == "__main__":
     cds_range = get_cds_range(cds_txt)
     len_lim = 200
-    positional_analysis_pipeline(nchx_sfn, nchx_dfn, cds_range, len_lim, "../uniquely_mapped/figures/nchx", multimap)
-    positional_analysis_pipeline(chx_sfn, chx_dfn, cds_range, len_lim, "../uniquely_mapped/figures/chx", multimap)
-    positional_analysis_pipeline(wt_sfn, wt_dfn, cds_range, len_lim, "../uniquely_mapped/figures/wt", multimap)
-    positional_analysis_pipeline(dom34_sfn, dom34_dfn, cds_range, len_lim, "../uniquely_mapped/figures/dom34", multimap)
+    positional_analysis_pipeline(nchx_sfn, nchx_dfn, cds_range, len_lim, figure_dir+'nchx', multimap)
+    positional_analysis_pipeline(chx_sfn, chx_dfn, cds_range, len_lim, figure_dir+'chx', multimap)
+    positional_analysis_pipeline(wt_sfn, wt_dfn, cds_range, len_lim, figure_dir+'wt', multimap)
+    positional_analysis_pipeline(dom34_sfn, dom34_dfn, cds_range, len_lim, figure_dir+'dom34', multimap)
