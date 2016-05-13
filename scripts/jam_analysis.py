@@ -50,9 +50,7 @@ if __name__ == "__main__":
     tseq = get_tseq(tfasta, cds_range)
     distance = ds_distance
     peak_type = 'singlet'
-    core = ['nchx', 'chx', 'wt', 'dom34']
-    psfname = [ "../ds_cmp/{0}_singlet_pval.txt".format(c) for c in core ]
-    pdfname = [ "../ds_cmp/{0}_doublet_pval.txt".format(c) for c in core ]
-    oprfx = "../figures/codon_peak_cnt/"
-    for i in range(len(core)):
-        library_analysis_pipeline(psfname[i], pdfname[i], tseq, distance, window_size, peak_type, core[i], oprfx+core[i])
+    library_analysis_pipeline(nchx_psfn, nchx_pdfn, tseq, distance, window_size, peak_type, 'nchx', figure_dir+'nchx')
+    library_analysis_pipeline(chx_psfn, chx_pdfn, tseq, distance, window_size, peak_type, 'chx', figure_dir+'chx')
+    library_analysis_pipeline(wt_psfn, wt_pdfn, tseq, distance, window_size, peak_type, 'wt', figure_dir+'wt')
+    library_analysis_pipeline(dom34_psfn, dom34_pdfn, tseq, distance, window_size, peak_type, 'dom34', figure_dir+'dom34')

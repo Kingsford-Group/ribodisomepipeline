@@ -50,7 +50,8 @@ nchx_pdfn = "../uniquely_mapped/jam_pvals/nchx_doublet_pval.txt"
 chx_pdfn = "../uniquely_mapped/jam_pvals/chx_doublet_pval.txt"
 wt_pdfn = "../uniquely_mapped/jam_pvals/wt_doublet_pval.txt"
 dom34_pdfn = "../uniquely_mapped/jam_pvals/dom34_doublet_pval.txt"
-
+# output directories
+figure_dir="../uniquely_mapped/figures/"
 #==============================
 # global params
 #==============================
@@ -64,6 +65,6 @@ peak_min_cutoff=3
 sd_distance = 13
 window_size = 5
 ds_distance = -(sd_distance + window_size)
-sample_size = 1000000
+sample_size = 10000
 # multimapping toggle
 multimap = False
