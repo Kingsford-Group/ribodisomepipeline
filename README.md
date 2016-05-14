@@ -35,3 +35,6 @@ disome pipeline
 #### Notes on analysis settings
 * __transcriptome__ (for alignment) all transcripts included (no filter for overlapping genes)
 * __read count summary__ all reads used (including multi-mapped reads)
+* jam significance settings: 
+  * background sample size: 10,000
+  * significance p-value cutoff: 0.1
