@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import numpy as np
-from doublet_profile import generate_codon_profile_from_rlen_hist, get_tid2codonp_from_ribomap_base
+from doublet_profile import generate_codon_profile_from_rlen_hist, get_tid2codonp_from_ribomap_base, get_codon_profile_from_deblur_profile
 from significant_doublet_count import get_window_cnt, read_pvals_from_file
-from footprint_hist_parser import get_cds_range, get_tseq
+from io_utils import get_cds_range, get_tseq
 from file_names import *
 
 import matplotlib
@@ -13,6 +13,9 @@ rcParams['font.size'] = 12
 rcParams['xtick.major.size'] = 5
 rcParams['ytick.major.size'] = 5
 
+#==============================
+# utils
+#==============================
 def get_significant_peaks(tid2pvals, sig_cutoff=0.1):
     tot_cnt = 0
     sig_cnt = 0
@@ -105,6 +108,9 @@ def get_collision_rates(tid2pos, sprof, dprof, peak_type):
                 vec.append(cr)
     return vec
 
+#==============================
+# jam vs non-jam
+#==============================
 def boxplot_compare(vec_sig, vec_rest, ylabel, figname):
     plt.figure()
     plt.boxplot([ vec_sig, vec_rest ], whis='range', labels=['peaks with \nsignificant collision', 'rest' ])
@@ -115,17 +121,8 @@ def boxplot_compare(vec_sig, vec_rest, ylabel, figname):
     plt.savefig(figname, bbox_inches='tight')
     plt.close()
 
-def group_boxplots(group_data, group_label, ylabel, figname):
-    plt.figure()
-    plt.boxplot(group_data, whis='range', labels=group_label)
-    up_val = max(map(lambda v: np.percentile(v, 80), group_data))
-    low_val = np.floor(min(map(lambda v: np.percentile(v, 0), group_data)))
-    plt.ylabel(ylabel)
-    plt.ylim((low_val,up_val))
-    plt.savefig(figname, bbox_inches='tight')
-    plt.close()
-
 def significance_analysis_pipeline(pfname, dfname, sfname, oprefix):
+    """ two group comparision: jam vs nonjam"""
     tid2pvals = read_pvals_from_file(pfname)
     tid2sig, tid2rest = get_significant_peaks(tid2pvals)
     print "getting doublet profile..."
@@ -163,6 +160,30 @@ def significance_analysis_pipeline(pfname, dfname, sfname, oprefix):
     cr_rest = get_collision_rates(tid2rest, scp, dcp)
     boxplot_compare(cr_sig, cr_rest, 'collision rate', oprefix+"_cr.pdf")
 
+#==============================
+# code sanity check
+#==============================
+def significance_cmp_before_after(p1fname, p2fname):
+    tid2pvals1 = read_pvals_from_file(p1fname)
+    tid2sig1, tid2rest = get_significant_peaks(tid2pvals1)
+    tid2pvals2 = read_pvals_from_file(p2fname)
+    tid2sig2, tid2rest = get_significant_peaks(tid2pvals2)
+    for tid in tid2sig1:
+        if tid not in tid2sig2:
+            print "oops tid {0} not exists in file {1}!".format(tid, p2fname)
+            print tid2sig1[tid]
+            print tid2pvals1[tid]
+            print tid2pvals2[tid]
+            continue
+        if tid2sig1[tid] != tid2sig2[tid]:
+            print "oops two files disagree!"
+            print tid, tid2sig1[tid], tid2sig2[tid]
+            print tid2pvals1[tid]
+            print tid2pvals2[tid]
+
+#================================
+# compare joint jam, jam, non-jam
+#================================
 def overlapped_peaks(dlist, slist, distance, window_size, peak_type):
     if peak_type == 'singlet':
         convert_list = dlist
@@ -190,6 +211,31 @@ def batch_overlapped_peaks(tid2speak, tid2dpeak, distance, window_size, peak_typ
     ccnt = sum(map(len, double_sig.values()))
     print "significant singlet {0} doublet {1} joint {2} ({3:.0%})".format(scnt, dcnt, ccnt, float(ccnt)/dcnt)
     return double_sig
+
+def prepare_peak_list(psfname, pdfname, distance, window_size, peak_type):
+    """
+    separate peaks into 5 groups:
+    singlet-jam, singlet-nonjam, doublet-jam, doublet-non-jam, joint-jam
+    """
+    print "getting significant singlet peaks..."
+    tid2spvals = read_pvals_from_file(psfname)
+    tid2ssig, tid2srest = get_significant_peaks(tid2spvals)
+    print "getting significant doublet peaks..."
+    tid2dpvals = read_pvals_from_file(pdfname)
+    tid2dsig, tid2drest = get_significant_peaks(tid2dpvals)
+    print "getting joint significant peaks..."
+    tid2jsig = batch_overlapped_peaks(tid2ssig, tid2dsig, distance, window_size, peak_type)
+    return tid2ssig, tid2srest, tid2dsig, tid2drest, tid2jsig
+
+def group_boxplots(group_data, group_label, ylabel, figname):
+    plt.figure()
+    plt.boxplot(group_data, whis='range', labels=group_label)
+    up_val = max(map(lambda v: np.percentile(v, 80), group_data))
+    low_val = np.floor(min(map(lambda v: np.percentile(v, 0), group_data)))
+    plt.ylabel(ylabel)
+    plt.ylim((low_val,up_val))
+    plt.savefig(figname, bbox_inches='tight')
+    plt.close()
 
 def plot_dspeaks(dprof, sprof, dpeak, speak, dpsig, spsig, tid, figname, grid=False):
     cds_len = len(dprof)
@@ -235,7 +281,7 @@ def plot_dspeaks(dprof, sprof, dpeak, speak, dpsig, spsig, tid, figname, grid=Fa
     plt.close()
     print "{0} len: {1} average doublet: {2:.2f} collision rate: {3:.2%}".format(tid,len(sprof), np.mean(dprof), cr)
 
-def double_significance_pipeline(pdfname, psfname, distance, window_size, peak_type, dfname, sfname, oprefix):
+def double_significance_pipeline(pdfname, psfname, distance, window_size, peak_type, dfname, sfname, oprefix, multimap):
     print "significant singlet"
     tid2spvals = read_pvals_from_file(psfname)
     tid2ssig, tid2srest = get_significant_peaks(tid2spvals)
@@ -246,7 +292,10 @@ def double_significance_pipeline(pdfname, psfname, distance, window_size, peak_t
     print "getting doublet profile..."
     dcp = generate_codon_profile_from_rlen_hist(dfname, cds_range)
     print "getting singlet profile..."
-    scp = get_tid2codonp_from_ribomap_base(sfname, cds_range)
+    if multimap == True:
+        scp = get_tid2codonp_from_ribomap_base(sfname, cds_range)
+    else:
+        scp = get_codon_profile_from_deblur_profile(sfname)
     print "boxplot comparision..."
     group_label = ['significant\njoint\npeaks','significant\nsinglet\npeaks', 'insignificant\nsinglet\npeaks', 'significant\ndoublet\npeaks', 'insignificant\ndoublet\npeaks']
     tid2sosig = {}
@@ -315,35 +364,9 @@ def double_significance_pipeline(pdfname, psfname, distance, window_size, peak_t
     #     plot_dspeaks(dcp[tid], scp[tid], dpeak, speak, tid2dsig[tid], tid2ssig[tid], tid, "{0}.pdf".format(tid))
     #     break
 
-def significance_cmp_before_after(p1fname, p2fname):
-    tid2pvals1 = read_pvals_from_file(p1fname)
-    tid2sig1, tid2rest = get_significant_peaks(tid2pvals1)
-    tid2pvals2 = read_pvals_from_file(p2fname)
-    tid2sig2, tid2rest = get_significant_peaks(tid2pvals2)
-    for tid in tid2sig1:
-        if tid not in tid2sig2:
-            print "oops tid {0} not exists in file {1}!".format(tid, p2fname)
-            print tid2sig1[tid]
-            print tid2pvals1[tid]
-            print tid2pvals2[tid]
-            continue
-        if tid2sig1[tid] != tid2sig2[tid]:
-            print "oops two files disagree!"
-            print tid, tid2sig1[tid], tid2sig2[tid]
-            print tid2pvals1[tid]
-            print tid2pvals2[tid]
-
-def prepare_peak_list(psfname, pdfname, distance, window_size, peak_type):
-    print "getting significant singlet peaks..."
-    tid2spvals = read_pvals_from_file(psfname)
-    tid2ssig, tid2srest = get_significant_peaks(tid2spvals)
-    print "getting significant doublet peaks..."
-    tid2dpvals = read_pvals_from_file(pdfname)
-    tid2dsig, tid2drest = get_significant_peaks(tid2dpvals)
-    print "getting joint significant peaks..."
-    tid2jsig = batch_overlapped_peaks(tid2ssig, tid2dsig, distance, window_size, peak_type)
-    return tid2ssig, tid2srest, tid2dsig, tid2drest, tid2jsig
-
+#==============================
+# jam reproducibility
+#==============================
 def closest_peak(p1, p2):
     return [ min(np.abs(pos-np.array(p2))) for pos in p1 ]
     
@@ -390,46 +413,22 @@ if __name__ == "__main__":
     cds_range = get_cds_range(cds_txt) 
     distance = ds_distance
     peak_type = 'singlet'
-    core = ['nchx', 'chx', 'wt', 'dom34']
-    psfname = [ "../ds_cmp/{0}_singlet_pval.txt".format(c) for c in core ]
-    pdfname = [ "../ds_cmp/{0}_doublet_pval.txt".format(c) for c in core ]
-    oprfx = "../ds_cmp/reproducibility/"
-    for i in range(len(core)):
-        for j in range(i+1, len(core)):
-            pair_peak_compare_pipeline(psfname[i], pdfname[i], psfname[j], pdfname[j], distance, window_size, peak_type, oprfx, core[i], core[j])
 
-    # print "significant doublet"
-    # tid2dpvals = read_pvals_from_file(pdfname)
-    # tid2dsig, tid2drest = get_significant_peaks(tid2dpvals)
-    # tid2jsig = batch_overlapped_peaks(tid2ssig, tid2dsig, distance, window_size, peak_type)
+    # jam features
+    double_significance_pipeline(nchx_pdfn, nchx_psfn, distance, window_size, peak_type, nchx_dfn, nchx_sfn, figure_dir+"nchx_joint", multimap)
+    double_significance_pipeline(chx_pdfn, chx_psfn, distance, window_size, peak_type, chx_dfn, chx_sfn, figure_dir+"chx_joint", multimap)
+    double_significance_pipeline(wt_pdfn, wt_psfn, distance, window_size, peak_type, wt_dfn, wt_sfn, figure_dir+"wt_joint", multimap)
+    double_significance_pipeline(dom34_pdfn, dom34_psfn, distance, window_size, peak_type, dom34_dfn, dom34_sfn, figure_dir+"dom34_joint", multimap)
 
-    
+    # reproducibility on jam locations
+    pair_peak_compare_pipeline(nchx_psfn, nchx_pdfn, chx_psfn, chx_pdfn, distance, window_size, peak_type, figure_dir, 'nchx', 'chx')
+    pair_peak_compare_pipeline(nchx_psfn, nchx_pdfn, wt_psfn, wt_pdfn, distance, window_size, peak_type, figure_dir, 'nchx', 'wt')
+    pair_peak_compare_pipeline(nchx_psfn, nchx_pdfn, dom34_psfn, dom34_pdfn, distance, window_size, peak_type, figure_dir, 'nchx', 'dom34')
+    pair_peak_compare_pipeline(chx_psfn, chx_pdfn, wt_psfn, wt_pdfn, distance, window_size, peak_type, figure_dir, 'chx', 'wt')
+    pair_peak_compare_pipeline(chx_psfn, chx_pdfn, dom34_psfn, dom34_pdfn, distance, window_size, peak_type, figure_dir, 'chx', 'dom34')
+    pair_peak_compare_pipeline(wt_psfn, wt_pdfn, dom34_psfn, dom34_pdfn, distance, window_size, peak_type, figure_dir, 'wt', 'dom34')
+
     """
-    psfname = "../ds_cmp/nchx_singlet_pval.txt"
-    pdfname = "../ds_cmp/nchx_doublet_pval.txt"
-    dfname = nchx_dfn
-    sfname = nchx_sfn
-    oprefix = '../ds_cmp/nchx_joint'
-    double_significance_pipeline(pdfname, psfname, distance, window_size, peak_type, dfname, sfname, oprefix)
-    psfname = "../ds_cmp/chx_singlet_pval.txt"
-    pdfname = "../ds_cmp/chx_doublet_pval.txt"
-    dfname = chx_dfn
-    sfname = chx_sfn
-    oprefix = '../ds_cmp/chx_joint'
-    double_significance_pipeline(pdfname, psfname, distance, window_size, peak_type, dfname, sfname, oprefix)
-    psfname = "../ds_cmp/wt_singlet_pval.txt"
-    pdfname = "../ds_cmp/wt_doublet_pval.txt"
-    dfname = wt_dfn
-    sfname = wt_sfn
-    oprefix = '../ds_cmp/wt_joint'
-    double_significance_pipeline(pdfname, psfname, distance, window_size, peak_type, dfname, sfname, oprefix)
-    psfname = "../ds_cmp/dom34_singlet_pval.txt"
-    pdfname = "../ds_cmp/dom34_doublet_pval.txt"
-    dfname = dom34_dfn
-    sfname = dom34_sfn
-    oprefix = '../ds_cmp/dom34_joint'
-    double_significance_pipeline(pdfname, psfname, distance, window_size, peak_type, dfname, sfname, oprefix)
-
     # eyeballing sanity check to see whether pipline is broken
     significance_cmp_before_after("../ds_cmp/nchx_pval.txt", "../ds_cmp/nchx_singlet_pval.txt")
 

@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import scipy.stats
 from codon_table import *
-from ribomap_result_parser import *
+from io_utils import *
 from peak_cluster import threshold, identify_peaks, validate_profile
 from ribofit_utils import codonp_from_basep, sum_frames
 
