@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
-from ribomap_result_parser import *
+from io_utils import *
 
 import matplotlib
 import matplotlib.pyplot as plt

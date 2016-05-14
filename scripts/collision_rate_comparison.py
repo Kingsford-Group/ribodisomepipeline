@@ -2,8 +2,7 @@
 import os
 import numpy as np
 import scipy.stats
-from footprint_hist_parser import parse_rlen_hist, get_cds_range
-from ribomap_result_parser import parse_estimated_profile
+from io_utils import *
 from ribofit_utils import validate_profile, codonp_from_basep, sum_frames
 from file_names import *
 

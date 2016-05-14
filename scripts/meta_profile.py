@@ -2,7 +2,7 @@
 import numpy as np
 import os
 import sys
-from footprint_hist_parser import *
+from io_utils import *
 
 import matplotlib
 import matplotlib.pyplot as plt

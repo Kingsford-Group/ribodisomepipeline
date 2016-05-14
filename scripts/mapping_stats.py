@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from ribomap_result_parser import *
+from io_utils import *
 import sys
 
 def frame_stats(p,cds_range, afterstart, beforestop):

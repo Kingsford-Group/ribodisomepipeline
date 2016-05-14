@@ -2,7 +2,6 @@
 import sys
 import numpy as np
 import scipy.stats
-from ribomap_result_parser import *
 from ribofit_utils import *
 from io_utils import *
 
