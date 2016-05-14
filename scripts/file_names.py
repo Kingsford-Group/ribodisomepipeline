@@ -50,6 +50,16 @@ nchx_pdfn = "../uniquely_mapped/jam_pvals/nchx_doublet_pval.txt"
 chx_pdfn = "../uniquely_mapped/jam_pvals/chx_doublet_pval.txt"
 wt_pdfn = "../uniquely_mapped/jam_pvals/wt_doublet_pval.txt"
 dom34_pdfn = "../uniquely_mapped/jam_pvals/dom34_doublet_pval.txt"
+# meme peak sequence fasta
+nchx_fa = "../uniquely_mapped/jam_pvals/nchx_sjam.fa"
+chx_fa = "../uniquely_mapped/jam_pvals/chx_sjam.fa"
+wt_fa = "../uniquely_mapped/jam_pvals/wt_sjam.fa"
+dom34_fa = "../uniquely_mapped/jam_pvals/dom34_sjam.fa"
+nchx_info = "../uniquely_mapped/jam_pvals/nchx_info.txt"
+chx_info = "../uniquely_mapped/jam_pvals/chx_info.txt"
+wt_info = "../uniquely_mapped/jam_pvals/wt_info.txt"
+dom34_info = "../uniquely_mapped/jam_pvals/dom34_info.txt"
+
 # output directories
 figure_dir="../uniquely_mapped/figures/"
 #==============================
