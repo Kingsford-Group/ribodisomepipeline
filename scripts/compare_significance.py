@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
+import scipy.stats
 from doublet_profile import generate_codon_profile_from_rlen_hist, get_tid2codonp_from_ribomap_base, get_codon_profile_from_deblur_profile
 from significant_doublet_count import get_window_cnt, read_pvals_from_file
 from io_utils import get_cds_range, get_tseq
@@ -9,7 +10,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
-rcParams['font.size'] = 12
+rcParams['font.size'] = 20
 rcParams['xtick.major.size'] = 5
 rcParams['ytick.major.size'] = 5
 
@@ -379,7 +380,7 @@ def compare_peak_list(tid2p1, tid2p2, fn1, fn2, figname, close_range=10):
     for tid in tid_list:
         dlist.extend(closest_peak(tid2p1[tid], tid2p2[tid]))
     close_cnt = np.sum(np.array(dlist)<=close_range)
-    ns, bins, patches = plt.hist(dlist, bins=range(101), color='b', alpha=0.5)
+    ns, bins, patches = plt.hist(dlist, bins=range(0,101,5), color='b', alpha=0.5)
     plt.xlabel("distance to closest peak")
     plt.ylabel("# peaks")
     plt.title("{0} compare to {1}\ntotal peaks in {0}: {2} [{3}, {4}]\nmatched peak within 10 codons: {5} ({6:.0%})".format(fn1, fn2, len(dlist), min(dlist), max(dlist), close_cnt, float(close_cnt)/len(dlist)))
@@ -388,7 +389,7 @@ def compare_peak_list(tid2p1, tid2p2, fn1, fn2, figname, close_range=10):
     for tid in tid_list:
         dlist.extend(closest_peak(tid2p2[tid], tid2p1[tid]))
     close_cnt = np.sum(np.array(dlist)<=close_range)
-    ns, bins, patches = plt.hist(dlist, bins=range(101), color='b', alpha=0.5)
+    ns, bins, patches = plt.hist(dlist, bins=range(0,101,5), color='b', alpha=0.5)
     plt.xlabel("distance to closest peak")
     plt.ylabel("# peaks")
     plt.title("{0} compare to {1}\ntotal peaks in {0}: {2} [{3}, {4}]\nmatched peak within 10 codons: {5} ({6:.0%})".format(fn2, fn1, len(dlist), min(dlist), max(dlist), close_cnt, float(close_cnt)/len(dlist)))
@@ -409,16 +410,54 @@ def pair_peak_compare_pipeline(p1sfname, p1dfname, p2sfname, p2dfname, distance,
     figname = "{0}doublet_insig_{1}_{2}.pdf".format(oprfx, fn1, fn2)
     compare_peak_list(tid2drest1, tid2drest2, fn1, fn2, figname)
     
+def reproducibility_sics_nonsics(p1fname, p2fname, figname, close_range=10):
+    tid2pvals = read_pvals_from_file(p1fname)
+    tid2sig1, tid2rest1 = get_significant_peaks(tid2pvals)
+    tid2pvals = read_pvals_from_file(p2fname)
+    tid2sig2, tid2rest2 = get_significant_peaks(tid2pvals)
+    
+    "print significant set"
+    tid_list = list(set(tid2sig1.keys())&set(tid2sig2.keys()))
+    print "overlapping transcripts: {0}".format(len(tid_list))
+    plt.figure(figsize=(12,6))
+    plt.subplot(121)
+    dlist_sig = []
+    for tid in tid_list:
+        dlist_sig.extend(closest_peak(tid2sig1[tid], tid2sig2[tid]))
+    close_cnt = np.sum(np.array(dlist_sig)<=close_range)
+    ns, bins, patches = plt.hist(dlist_sig, bins=range(0,101,5), color='b', alpha=0.5)
+    plt.xlabel("distance to closest peak")
+    plt.ylabel("# peaks")
+    plt.title("SICS",size=20)
+    print "total peaks file 1: {0} [{1}, {2}]".format(len(dlist_sig), min(dlist_sig), max(dlist_sig))
+    print "matched peak within 10 codons: {0} ({1:.0%})".format(close_cnt, float(close_cnt)/len(dlist_sig))
+    "print in-significant set"
+    tid_list = list(set(tid2rest1.keys())&set(tid2rest2.keys()))
+    plt.subplot(122)
+    dlist_insig = []
+    for tid in tid_list:
+        dlist_insig.extend(closest_peak(tid2rest1[tid], tid2rest2[tid]))
+    close_cnt = np.sum(np.array(dlist_insig)<=close_range)
+    ns, bins, patches = plt.hist(dlist_insig, bins=range(0,101,5), color='b', alpha=0.5)
+    plt.xlabel("distance to closest peak")
+    plt.ylabel("# peaks")
+    plt.title("nonSICS",size=20)
+    print "total peaks in file 1: {0} [{1}, {2}]".format(len(dlist_insig), min(dlist_insig), max(dlist_insig))
+    print "matched peak within 10 codons: {0} ({1:.0%})".format(close_cnt, float(close_cnt)/len(dlist_insig))
+    plt.tight_layout()
+    plt.savefig(figname, bbox_inches='tight')
+    plt.close()
+    print "SICS VS nonSICS: mwu p-value:", scipy.stats.mannwhitneyu(dlist_sig, dlist_insig)
+
 if __name__ == "__main__":
     cds_range = get_cds_range(cds_txt) 
-    distance = ds_distance
-    peak_type = 'singlet'
 
-    # jam features
-    double_significance_pipeline(nchx_pdfn, nchx_psfn, distance, window_size, peak_type, nchx_dfn, nchx_sfn, figure_dir+"nchx_joint", multimap)
-    double_significance_pipeline(chx_pdfn, chx_psfn, distance, window_size, peak_type, chx_dfn, chx_sfn, figure_dir+"chx_joint", multimap)
-    double_significance_pipeline(wt_pdfn, wt_psfn, distance, window_size, peak_type, wt_dfn, wt_sfn, figure_dir+"wt_joint", multimap)
-    double_significance_pipeline(dom34_pdfn, dom34_psfn, distance, window_size, peak_type, dom34_dfn, dom34_sfn, figure_dir+"dom34_joint", multimap)
+    figname = figure_dir+"sics_match_nchx_wt.pdf"
+    reproducibility_sics_nonsics(nchx_psfn, wt_psfn, figname)
+
+    """
+    distance = sd_distance
+    peak_type = 'doublet'
 
     # reproducibility on jam locations
     pair_peak_compare_pipeline(nchx_psfn, nchx_pdfn, chx_psfn, chx_pdfn, distance, window_size, peak_type, figure_dir, 'nchx', 'chx')
@@ -428,10 +467,14 @@ if __name__ == "__main__":
     pair_peak_compare_pipeline(chx_psfn, chx_pdfn, dom34_psfn, dom34_pdfn, distance, window_size, peak_type, figure_dir, 'chx', 'dom34')
     pair_peak_compare_pipeline(wt_psfn, wt_pdfn, dom34_psfn, dom34_pdfn, distance, window_size, peak_type, figure_dir, 'wt', 'dom34')
 
-    """
+    # jam features
+    double_significance_pipeline(nchx_pdfn, nchx_psfn, distance, window_size, peak_type, nchx_dfn, nchx_sfn, figure_dir+"nchx_joint", multimap)
+    double_significance_pipeline(chx_pdfn, chx_psfn, distance, window_size, peak_type, chx_dfn, chx_sfn, figure_dir+"chx_joint", multimap)
+    double_significance_pipeline(wt_pdfn, wt_psfn, distance, window_size, peak_type, wt_dfn, wt_sfn, figure_dir+"wt_joint", multimap)
+    double_significance_pipeline(dom34_pdfn, dom34_psfn, distance, window_size, peak_type, dom34_dfn, dom34_sfn, figure_dir+"dom34_joint", multimap)
+
     # eyeballing sanity check to see whether pipline is broken
     significance_cmp_before_after("../ds_cmp/nchx_pval.txt", "../ds_cmp/nchx_singlet_pval.txt")
-
     significance_analysis_pipeline(nchx_dfn, nchx_sfn, "../ds_cmp/nchx_pval")
     significance_analysis_pipeline(chx_pfn, chx_dfn, chx_sfn, "../ds_cmp/chx_pval")
     significance_analysis_pipeline(wt_pfn, wt_dfn, wt_sfn, "../ds_cmp/wt_pval")

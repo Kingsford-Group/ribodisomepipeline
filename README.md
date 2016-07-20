@@ -31,6 +31,7 @@ disome pipeline
 4. MEME novel motif calling:
    1. write jam sequence to fasta `scripts/extract_singlet_peak_seq.py`
    2. for each fasta file, run `scripts/run_meme.sh $peak.fasta $output_dir`
+5. (included in thesis) reproducibility of stalling induced collision sites between two libraries `scripts/compare_significance` function `reproducibility_sics_nonsics`
 
 #### Notes on analysis settings
 * __transcriptome__ (for alignment) all transcripts included (no filter for overlapping genes)
