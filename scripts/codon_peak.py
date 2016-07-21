@@ -118,7 +118,7 @@ def get_codon_peak_cnt(peak, tseq):
                 codon_cnt[codon] += 1
     return codon_cnt
 
-def get_codon_peak_freq(tid2peaks, tseq):
+def get_codon_peak_freq(tid2peaks, tseq, norm=True):
     codon_cnt = {}
     tot_cnt = 0
     for tid in tid2peaks:
@@ -129,12 +129,13 @@ def get_codon_peak_freq(tid2peaks, tseq):
             tot_cnt += 1
     tot_cnt = float(tot_cnt)
     if tot_cnt == 0: return codon_cnt
+    if norm == False: return codon_cnt
     for c in codon_cnt:
         codon_cnt[c] /= tot_cnt
     return codon_cnt
 
 def get_frequency(peak, usage):
-    return { k: cnt/float(usage[k]) for k, cnt in peak.iteritems()}
+    return { k: cnt/float(usage[k]) if k in usage else 0 for k, cnt in peak.iteritems()}
 
 def plot_codon_freq(codon_cnt, title, fn_prefix):
     codon_list = generate_cc_list()
@@ -157,24 +158,26 @@ def plot_codon_freq_bg_fg(codon_bg, codon_fg, title, fn_prefix):
     c = [ aa2color[codon2aa[codon]] for codon in codon_list ]
     cbg = np.array([ codon_bg[codon] if codon in codon_bg else 0 for codon in codon_list ])
     cfg = np.array([ codon_fg[codon] if codon in codon_fg else 0 for codon in codon_list ])
+    ymax = max(max(cbg), max(cfg))
     x = range(len(codon_list))
     plt.figure(figsize=(12,12))
     plt.subplot(211)
     plt.bar(x, cfg, color=c, edgecolor='white',align='center')
     plt.xticks(x, codon_list, rotation='vertical', fontsize=12)
     plt.xlim((x[0]-1, x[-1]+1))
+    plt.ylim((0,ymax))
     plt.ylabel('foreground usage')
     plt.title(title)
     plt.subplot(212)
     plt.bar(x, -cbg, color=c, edgecolor='white',align='center')
     #plt.xticks(x, codon_list, rotation='vertical', fontsize=12)
     plt.xticks([])
-    y = np.linspace(0,-max(cbg),6)
+    y = np.linspace(0,-ymax,6)
     yt = ["{0:.2f}".format(-i) for i in y]
     yt[0] = "{0:.2f}".format(0)
     plt.yticks(y,yt)
     plt.xlim((x[0]-1, x[-1]+1))
-    plt.ylim((-max(cbg), 0))
+    plt.ylim((-ymax, 0))
     plt.ylabel('background usage')
     plt.tight_layout()
     plt.savefig(fn_prefix+"_codon.pdf", bbox_inches='tight')

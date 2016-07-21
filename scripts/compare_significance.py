@@ -124,8 +124,7 @@ def boxplot_compare(vec_sig, vec_rest, ylabel, figname):
 
 def significance_analysis_pipeline(pfname, dfname, sfname, oprefix):
     """ two group comparision: jam vs nonjam"""
-    tid2pvals = read_pvals_from_file(pfname)
-    tid2sig, tid2rest = get_significant_peaks(tid2pvals)
+    tid2sig, tid2rest = get_sig_peaks_from_file(pfname)
     print "getting doublet profile..."
     dcp = generate_codon_profile_from_rlen_hist(dfname, cds_range)
     print "getting singlet profile..."
@@ -213,17 +212,20 @@ def batch_overlapped_peaks(tid2speak, tid2dpeak, distance, window_size, peak_typ
     print "significant singlet {0} doublet {1} joint {2} ({3:.0%})".format(scnt, dcnt, ccnt, float(ccnt)/dcnt)
     return double_sig
 
+def get_sig_peaks_from_file(pfname, cutoff=0.1):
+    tid2pvals = read_pvals_from_file(pfname)
+    tid2sig, tid2rest = get_significant_peaks(tid2pvals, cutoff)
+    return tid2sig, tid2rest
+
 def prepare_peak_list(psfname, pdfname, distance, window_size, peak_type):
     """
     separate peaks into 5 groups:
     singlet-jam, singlet-nonjam, doublet-jam, doublet-non-jam, joint-jam
     """
     print "getting significant singlet peaks..."
-    tid2spvals = read_pvals_from_file(psfname)
-    tid2ssig, tid2srest = get_significant_peaks(tid2spvals)
+    tid2ssig, tid2srest = get_sig_peaks_from_file(psfname)
     print "getting significant doublet peaks..."
-    tid2dpvals = read_pvals_from_file(pdfname)
-    tid2dsig, tid2drest = get_significant_peaks(tid2dpvals)
+    tid2dsig, tid2drest = get_sig_peaks_from_file(pdfname)
     print "getting joint significant peaks..."
     tid2jsig = batch_overlapped_peaks(tid2ssig, tid2dsig, distance, window_size, peak_type)
     return tid2ssig, tid2srest, tid2dsig, tid2drest, tid2jsig
@@ -284,11 +286,9 @@ def plot_dspeaks(dprof, sprof, dpeak, speak, dpsig, spsig, tid, figname, grid=Fa
 
 def double_significance_pipeline(pdfname, psfname, distance, window_size, peak_type, dfname, sfname, oprefix, multimap):
     print "significant singlet"
-    tid2spvals = read_pvals_from_file(psfname)
-    tid2ssig, tid2srest = get_significant_peaks(tid2spvals)
+    tid2ssig, tid2srest = get_sig_peaks_from_file(psfname)
     print "significant doublet"
-    tid2dpvals = read_pvals_from_file(pdfname)
-    tid2dsig, tid2drest = get_significant_peaks(tid2dpvals)
+    tid2dsig, tid2drest = get_sig_peaks_from_file(pdfname)
     tid2jsig = batch_overlapped_peaks(tid2ssig, tid2dsig, distance, window_size, peak_type)
     print "getting doublet profile..."
     dcp = generate_codon_profile_from_rlen_hist(dfname, cds_range)
@@ -411,10 +411,8 @@ def pair_peak_compare_pipeline(p1sfname, p1dfname, p2sfname, p2dfname, distance,
     compare_peak_list(tid2drest1, tid2drest2, fn1, fn2, figname)
     
 def reproducibility_sics_nonsics(p1fname, p2fname, figname, close_range=10):
-    tid2pvals = read_pvals_from_file(p1fname)
-    tid2sig1, tid2rest1 = get_significant_peaks(tid2pvals)
-    tid2pvals = read_pvals_from_file(p2fname)
-    tid2sig2, tid2rest2 = get_significant_peaks(tid2pvals)
+    tid2sig1, tid2rest1 = get_sig_peaks_from_file(p1fname)
+    tid2sig2, tid2rest2 = get_sig_peaks_from_file(p2fname)
     
     "print significant set"
     tid_list = list(set(tid2sig1.keys())&set(tid2sig2.keys()))
