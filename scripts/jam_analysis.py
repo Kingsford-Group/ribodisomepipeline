@@ -57,7 +57,7 @@ def library_analysis_pipeline(psfname, pdfname, tseq, distance, window_size, pea
     plot_codon_freq_bg_fg(codon_nusage, codon_npeak, title, figprfx)
 
 def codon_dic_to_list(codon_list, codon_dic):
-    return np.array([ codon_dic[codon] if codon in codon_dic else 0 for codon in codon_list ])
+    return np.array([ codon_dic[codon] if codon in codon_dic else 0 for codon in codon_list ],dtype=float)
 
 def get_tot_cnt(tid2peaks):
     return sum(map(len, tid2peaks.values()))
@@ -67,26 +67,44 @@ def get_expected_ratio(fg, bg):
     cnt_bg = get_tot_cnt(bg)
     return float(cnt_fg)/(cnt_fg + cnt_bg)
 
+def compute_chisquare(cnt_obs, cnt_exp):
+    select = (cnt_exp != 0)
+    vobs = cnt_obs[select]
+    vexp = cnt_exp[select]
+    chisq, p = scipy.stats.chisquare(vobs, vexp)
+    return chisq, p, sum(select)-1
+
+def rescale_vec(vadj, vref):
+    return vadj*np.sum(vref)/np.sum(vadj)
+
 def chisquare_codon_freq_from_pfname(pfname, tseq, figname):
     tid2sig, tid2rest = get_sig_peaks_from_file(pfname)
-    codon_list = generate_cc_list()
-    codon_usage = get_codon_usage(tid2rest.keys(), 1, 1, tseq, False)
-    codon_peak = get_codon_peak_freq(tid2rest, tseq, False)
-    nonsics_bg = codon_dic_to_list(codon_list, codon_usage)
-    nonsics_fg = codon_dic_to_list(codon_list, codon_peak)
-    codon_usage = get_codon_usage(tid2sig.keys(), 1, 1, tseq, False)
+    codon_list = generate_cc_list(False)
     codon_peak = get_codon_peak_freq(tid2sig, tseq, False)
-    sics_bg = codon_dic_to_list(codon_list, codon_usage)
+    codon_usage = get_codon_usage(tid2sig.keys(), 1, 1, tseq, False)
     sics_fg = codon_dic_to_list(codon_list, codon_peak)
+    sics_bg = codon_dic_to_list(codon_list, codon_usage)
+    codon_peak = get_codon_peak_freq(tid2rest, tseq, False)
+    codon_usage = get_codon_usage(tid2rest.keys(), 1, 1, tseq, False)
+    nonsics_fg = codon_dic_to_list(codon_list, codon_peak)
+    nonsics_bg = codon_dic_to_list(codon_list, codon_usage)
 
-    chisq, p = scipy.stats.chisquare(sics_fg[sics_bg!=0], sics_bg[sics_bg!=0])
-    print "chisquare sics and bg {0:.0f} {1} {2}".format(chisq, p, np.sum(sics_bg!=0))
-    chisq, p = scipy.stats.chisquare(nonsics_fg[nonsics_bg!=0], nonsics_bg[nonsics_bg!=0])
-    print "chisquare nonsics and bg {0:.0f} {1} {2}".format(chisq, p, np.sum(nonsics_bg!=0))
-    chisq, p = scipy.stats.chisquare(sics_fg[nonsics_fg!=0], nonsics_fg[nonsics_fg!=0])
-    print "chisquare sics and nonsics {0:.0f} {1} {2}".format(chisq, p, np.sum(nonsics_fg!=0))
-    chisq, p = scipy.stats.chisquare(sics_bg[nonsics_bg!=0], nonsics_bg[nonsics_bg!=0])
-    print "chisquare bg and bg {0:.0f} {1} {2}".format(chisq, p, np.sum(nonsics_bg!=0))
+    # rescale vectors since chi-square is sensitive to sample size
+    sics_bg = rescale_vec(sics_bg, sics_fg)
+    nonsics_fg = rescale_vec(nonsics_fg, sics_fg)
+    nonsics_bg = rescale_vec(nonsics_bg, sics_fg)
+    print sics_fg
+
+    chisq, p, df = compute_chisquare(sics_fg, sics_bg)
+    print "chisquare sics and bg {0:.0f} {1} {2}".format(chisq, p, df)
+    chisq, p, df = compute_chisquare(nonsics_fg, nonsics_bg)
+    print "chisquare nonsics and bg {0:.0f} {1} {2}".format(chisq, p, df)
+    chisq, p, df = compute_chisquare(sics_fg, nonsics_fg)
+    print "chisquare sics and nonsics {0:.0f} {1} {2}".format(chisq, p, df)
+    chisq, p, df = compute_chisquare(nonsics_fg, sics_fg)
+    print "chisquare nonsics and sics {0:.0f} {1} {2}".format(chisq, p, df)
+    chisq, p, df = compute_chisquare(sics_bg, nonsics_bg)
+    print "chisquare bg and bg {0:.0f} {1} {2}".format(chisq, p, df)
 
 def codon_usage_sics_nonsics(pfname, tseq, figname):
     tid2sig, tid2rest = get_sig_peaks_from_file(pfname)

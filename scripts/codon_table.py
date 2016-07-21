@@ -40,6 +40,8 @@ aa2codon = {
     '*': ['TAA', 'TAG', 'TGA']
 }
 
+stop_codon = ['TAA', 'TAG', 'TGA']
+
 aa2fullname = {
 'F' : 'Phenylalanine',
 'L' : 'Leucine',
@@ -70,8 +72,10 @@ def generate_aa_list():
             'V', 'A', 'D', 'E', 'G',
             '*']
 
-def generate_cc_list():
-    return [ codon for aa in generate_aa_list() for codon in aa2codon[aa] ]
+def generate_cc_list(include_stop=True):
+    clist =  [ codon for aa in generate_aa_list() for codon in aa2codon[aa] ]
+    if include_stop: return clist
+    else: return [ c for c in clist if c not in stop_codon ]
 
 def get_aa_colormap():
     cmap = matplotlib.cm.Paired
